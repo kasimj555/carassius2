@@ -94,7 +94,7 @@
                         </StackPanel>
                         <!-- End: Simulation Panel -->
                         
-                        
+                        <!-- Begin: Unfolding Panel -->
                         <StackPanel x:Name="pnlUnfoldingTools" Orientation="Horizontal" Margin="0" Visibility="Visible">
                             <Menu Height="50" HorizontalAlignment="Center" VerticalAlignment="Top">
                                 <MenuItem x:Name="Menu_Name" Header="Type of unfold" Height="50">
@@ -105,10 +105,11 @@
                             <Button x:Name="Unfold_Click" Content="Get Unfolding" HorizontalAlignment="Center" Margin="5,0" Click="Get_Unfolding"></Button>
                             <StackPanel x:Name="Unfolding_Depth" Visibility="Hidden" Margin="3,0">
                                 <TextBlock Text="Unfold Depth" Height="25" VerticalAlignment="Top" HorizontalAlignment="Center"></TextBlock>
-                                <TextBox x:Name="Unfold_Depth" Height="25" Width="100" HorizontalAlignment="Right" VerticalAlignment="Bottom" PreviewTextInput="Unfold_Depth_PreviewTextInput"></TextBox>
+                                <TextBox x:Name="Unfold_Depth" Height="25" Width="100" HorizontalAlignment="Right" VerticalAlignment="Bottom" PreviewTextInput="Unfold_Depth_PreviewTextInput" TextChanged="Unfold_Depth_TextChanged"></TextBox>
                             </StackPanel>
                             <Button x:Name="Get_Back" Content="To the start" HorizontalAlignment="Center" Click="Get_Back_Click"></Button>
                         </StackPanel>
+                        <!-- End: Unfolding Panel -->
                     </StackPanel>
 
                 </StackPanel>

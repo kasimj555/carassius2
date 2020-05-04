@@ -95,7 +95,7 @@ namespace PNUnfolding
                             {
                                 if (petriNewTransitions.Exist(arc.To as VTransition))
                                 {
-                                    if(petriNewTransitions.GetKeys(arc.To as VTransition).All(x => ArcAlreadyExist(arc.From as VPlace, x)))
+                                    if (petriNewTransitions.GetKeys(arc.To as VTransition).All(x => ArcAlreadyExist(arc.From as VPlace, x)))
                                     {
                                         petriNewTransitions.Add(arc.To as VTransition);
                                         Result.arcs.Add(new VArc(place, petriNewTransitions.Last()));
@@ -103,7 +103,7 @@ namespace PNUnfolding
                                     }
                                     else
                                     {
-                                        foreach(var VTrn in petriNewTransitions.GetKeys(arc.To as VTransition))
+                                        foreach (var VTrn in petriNewTransitions.GetKeys(arc.To as VTransition))
                                         {
                                             if (!ArcAlreadyExist(arc.From as VPlace, VTrn))
                                             {
@@ -112,7 +112,7 @@ namespace PNUnfolding
                                             }
                                         }
                                     }
-                                    
+
                                 }
                                 else
                                 {
@@ -121,13 +121,16 @@ namespace PNUnfolding
                                     Result.arcs.Last().IsDirected = true;
                                 }
                                 ++Row;
-                                if (IsCutOfEvent(petriNewTransitions.Last()))
+                                if ((!IsBranchingProcess) && IsCutOfEvent(petriNewTransitions.Last()))
                                     petriNewTransitions.Last().IsActive = false;
                             }
                         }
                     }
                     place.IsActive = false;
                 }
+                #region method2
+                // Оставлено на всякий случай. (вызывает оверфлоу)
+
                 //foreach (var vPlace in petriNewPlaces.Keys)
                 //{
                 //    if (vPlace.IsActive)
@@ -168,6 +171,7 @@ namespace PNUnfolding
                 //        }
                 //    }
                 //}
+                #endregion
             }
             else
             {
@@ -183,7 +187,7 @@ namespace PNUnfolding
                                 Result.arcs.Add(new VArc(transition, petriNewPlaces.Last()));
                                 Result.arcs.Last().IsDirected = true;
                                 ++Row;
-                                if (IsCutOfEvent(petriNewPlaces.Last()))
+                                if ((!IsBranchingProcess) && IsCutOfEvent(petriNewPlaces.Last()))
                                     petriNewPlaces.Last().IsActive = false;
                             }
                         }
@@ -244,12 +248,15 @@ namespace PNUnfolding
             return list;
         }
 
-        private static bool ArcAlreadyExist(VPlace place,VTransition transition)
+        private static bool ArcAlreadyExist(VPlace place, VTransition transition)
         {
-            foreach(var arc in Result.arcs)
+            foreach (var vPlace in petriNewPlaces.GetKeys(place))
             {
-                if (arc.From == petriNewPlaces.GetKey(place) && arc.To == transition)
-                    return true;
+                foreach (var arc in Result.arcs)
+                {
+                    if (arc.From == vPlace && arc.To == transition)
+                        return true;
+                }
             }
             return false;
         }
@@ -267,6 +274,7 @@ namespace PNUnfolding
             Table = 1;
             Row = 1;
             Turn = 0;
+            CurrentTurn = 0;
             petriNewPlaces.Clear();
             petriNewTransitions.Clear();
 

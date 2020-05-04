@@ -2155,6 +2155,8 @@ namespace PNUnfolding
 
         private bool Type_of_Unfolding = true;
 
+        private string Depth;
+
         private void Get_Unfolding(object sender, RoutedEventArgs e)
         {
             if (!SomeThingChanged)
@@ -2167,10 +2169,10 @@ namespace PNUnfolding
                 else
                 {
                     int str;
-                    if (String.IsNullOrEmpty(Unfold_Depth.Text))
+                    if (String.IsNullOrEmpty(Depth))
                         str = 0;
                     else
-                        str = int.Parse(Unfold_Depth.Text);
+                        str = int.Parse(Depth);
                     VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str);
                     VisualizePetriNet(UnfoldedNet);
                 }
@@ -2187,6 +2189,9 @@ namespace PNUnfolding
         {
             Menu_Name.Header = "Unfolding";
 
+            if (!Type_of_Unfolding)
+                SomeThingChanged = false;
+
             Type_of_Unfolding = true;
 
             Unfolding_Depth.Visibility = Visibility.Hidden;
@@ -2196,12 +2201,23 @@ namespace PNUnfolding
 
         private void type_branch_Click(object sender, RoutedEventArgs e)
         {
+            if (Type_of_Unfolding)
+                SomeThingChanged = false;
+
             Menu_Name.Header = "Branching process";
 
             Type_of_Unfolding = false;
 
             Unfolding_Depth.Visibility = Visibility.Visible;
         }
+
+        private void Unfold_Depth_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            Depth = textBox.Text;
+            SomeThingChanged = false;
+        }
+
 
         private void Unfold_Depth_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
