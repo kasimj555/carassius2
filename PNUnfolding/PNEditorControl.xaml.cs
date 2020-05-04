@@ -11,12 +11,11 @@ using System.Xml;
 using System.Diagnostics;
 using System.Linq;
 using Core;
-using PNEditorEditView.ModelArrange;
-using PNEditorEditView.PropertyControls;
-using PNEditorEditView.Util;
+using PNUnfolding.ModelArrange;
+using PNUnfolding.Util;
 using Path = System.Windows.Shapes.Path;
 
-namespace PNEditorEditView
+namespace PNUnfolding
 {
     /// <summary>
     /// Author: Natalia Nikitina / Alexey Mitsyuk
@@ -25,6 +24,8 @@ namespace PNEditorEditView
     /// </summary>
     public partial class PNEditorControl : IView
     {
+        #region const
+
         private const string ADDARC = "Add new arc";
         private const string ADDNODE = "Add new node";
         private const string ADDEDGE = "Add new edge";
@@ -35,10 +36,7 @@ namespace PNEditorEditView
 
         private const string INCORRECTDATA = "The number of tokens should be bigger than 0.\n Please, try again!";
         private const string INCORRECTDATA01 = "You have entered the incorrect text data.\n Please, try again!";
-
-        private const string INCORRECTDATA02 =
-            "The number of tokens should be bigger than or equal to 0.\n Please, try again!";
-
+        private const string INCORRECTDATA02 = "The number of tokens should be bigger than or equal to 0.\n Please, try again!";
         private const string INCORRECTDATA03 = "An arc's weight should be bigger than 0.\n Please, try again!";
 
         private const string CLEARCANVAS00 = "Are you sure, that you want to clear the model?";
@@ -58,6 +56,8 @@ namespace PNEditorEditView
         private const int TRANSITIONWIDTH = 20;
         private const int TRANSITIONHEIGHT = 50;
 
+        #endregion
+
         // main Petri-net
         public static VPetriNet Net = VPetriNet.Create();
 
@@ -67,7 +67,6 @@ namespace PNEditorEditView
         public PNEditorControl()
         {
             InitializeComponent();
-            InitProperties();
             // this line is needed to draw the line during Line Drawing
             MainModelCanvas.Children.Add(_lineArcDrawing);
             // this is Select Rectangle
@@ -77,23 +76,6 @@ namespace PNEditorEditView
             Stopwatch.Start();
 
             _arranger = new PetriNetColumnAndGraphForceBasedGeneralArranger();
-        }
-
-        private List<PropertyEditorBase> _propertyEditors;
-
-        private void InitProperties()
-        {
-            _propertyEditors = new List<PropertyEditorBase>();
-            foreach (var child in PropertiesPanel.Children)
-            {
-                var editor = child as PropertyEditorBase;
-                if (editor != null)
-                {
-                    _propertyEditors.Add(editor);
-                    editor.BindMainControl(this);
-                    editor.SetItem(null);
-                }
-            }
         }
 
         #region Grid-Drawing
@@ -122,7 +104,6 @@ namespace PNEditorEditView
                     MainModelCanvas.Children.Add(dot);
                     x1 += 60;
                 }
-
                 y1 += 70;
                 x1 = 0.5;
             }
@@ -150,7 +131,6 @@ namespace PNEditorEditView
                 foreach (Rectangle rectangle in _gridDots)
                     rectangle.Visibility = Visibility.Visible;
             }
-
             btnGrid.IsEnabled = !(scale < 1);
         }
 
@@ -158,80 +138,34 @@ namespace PNEditorEditView
 
         #region UIMethods
 
-        private void EnableAddButtons()
+
+
+
+
+
+
+        private void MakeNamePanelVisible()
         {
-            btnAddPlace.IsEnabled = true;
-            btnAddTransition.IsEnabled = true;
-            btnAddArc.IsEnabled = true;
-            btnAddToken.IsEnabled = true;
-            btnNonOrientedArc.IsEnabled = true;
-            btnSetInitialState.IsEnabled = true;
+            lblName.Visibility = Visibility.Visible;
+            tbName.Visibility = Visibility.Visible;
+            btnOkName.Visibility = Visibility.Visible;
         }
 
-        public void DisableRedoButton()
+        private void MakeNamePanelCollapsed()
         {
-            if (Command.CanceledCommands.Count == 0)
-                btnRedo.IsEnabled = false;
-        }
-
-        private void EnableUndoRedoButtons()
-        {
-            btnUndo.IsEnabled = true;
-            btnRedo.IsEnabled = true;
+            lblName.Visibility = Visibility.Collapsed;
+            tbName.Visibility = Visibility.Collapsed;
+            btnOkName.Visibility = Visibility.Collapsed;
         }
 
         #endregion UIMethods
 
         #region ClickHandlers
 
-        private void btnAddPlace_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.AddPlace;
-            EnableAddButtons();
-            btnAddPlace.IsEnabled = false;
-        }
-
-        private void btnAddTransition_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.AddTransition;
-            EnableAddButtons();
-            btnAddTransition.IsEnabled = false;
-        }
-
-        private void btnAddArc_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.AddArc;
-            EnableAddButtons();
-            btnAddArc.IsEnabled = false;
-        }
-
-        private void btnAddToken_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.AddToken;
-            EnableAddButtons();
-            btnAddToken.IsEnabled = false;
-        }
-
         private void btnSelect_Click(object sender, RoutedEventArgs e)
         {
             btnSelect.IsEnabled = false;
             _leftMouseButtonMode = LeftMouseButtonMode.Select;
-            EnableAddButtons();
-        }
-
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            MakeDeleteCommand(_selectedFigures, _selectedArcs);
-            DeleteFigures(_selectedFigures, _selectedArcs);
-            _selectedFigures.Clear();
-            _selectedArcs.Clear();
-            ReassignSelectedProperties();
-            btnUndo.IsEnabled = true;
         }
 
         private void btnGrid_Click(object sender, RoutedEventArgs e)
@@ -249,16 +183,7 @@ namespace PNEditorEditView
                 foreach (var rectangle in _gridDots)
                     rectangle.Visibility = Visibility.Visible;
             }
-
             TurnOnSelectMode();
-        }
-
-        private void btnNonOrientedArc_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.AddArc;
-            EnableAddButtons();
-            btnNonOrientedArc.IsEnabled = false;
         }
 
         private void btnTieToMeshAll_Click(object sender, RoutedEventArgs e)
@@ -270,53 +195,9 @@ namespace PNEditorEditView
                     _selectedFigures.Add(figure);
                 }
             }
-
             btnTieToMesh_Click(sender, e);
-            UnselectFigures(); //(selectedFigures, selectedArcs); //(PetriNetNode.figures, Arc.arcs);
+            UnselectFigures();//(selectedFigures, selectedArcs); //(PetriNetNode.figures, Arc.arcs);
             ReassignSelectedProperties();
-            EnableAddButtons();
-        }
-
-        private void btnTieToMeshAlways_Click(object sender, RoutedEventArgs e)
-        {
-            if (_tie == false)
-            {
-                btnTieToMeshAlways.ToolTip = ALWAYSTIENODES00;
-                _modeTieToMesh = ModeTieToMesh.Tie;
-                _tie = true;
-            }
-            else
-            {
-                btnTieToMeshAlways.ToolTip = ALWAYSTIENODES01;
-                _modeTieToMesh = ModeTieToMesh.NotTie;
-                _tie = false;
-            }
-        }
-
-        [MenuItemHandler("file/export/as LaTeX code",27)]
-        public void MenuMakeTeX_Click()
-        {
-            btnSelect.IsEnabled = true;
-            if (Net.Nodes.Count == 0)
-            {
-                MessageBox.Show(EMPTYMODEL);
-                return;
-            }
-
-            PNtoTeXSettings PetriTeXWindow = new PNtoTeXSettings();
-            PetriTeXWindow.ShowDialog();
-        }
-        [MenuItemHandler("help/about")]
-        public static void MenuAbout_Click()
-        {
-            //btnSelect.IsEnabled = true;
-            PNEditorAbout aboutWin = new PNEditorAbout();
-            aboutWin.ShowDialog();
-        }
-        [MenuItemHandler("file/exit",100)]
-        public static void MenuExit_Click()
-        {
-            Application.Current.Shutdown();
         }
 
         private void btnShowHideLabels_Click(object sender, RoutedEventArgs e)
@@ -336,59 +217,7 @@ namespace PNEditorEditView
 
                 hideLabels = false;
             }
-
             TurnOnSelectMode();
-        }
-
-        private void ChangePriorities(List<PetriNetNode> selectedF, List<VArc> selectedA, int change)
-        {
-            _leftMouseButtonMode = change < 0 ? LeftMouseButtonMode.PriorityDown : LeftMouseButtonMode.PriorityUp;
-            EnableAddButtons();
-
-            if (selectedF.Count != 0)
-            {
-                foreach (PetriNetNode figure in selectedF)
-                {
-                    //RemoveNode(figure);
-                    VTransition t = figure as VTransition;
-                    if (t != null)
-                    {
-                        t.Priority += change;
-                        // TODO: add priority label
-                    }
-                }
-            }
-
-            //DeleteArcs(selectedA);
-
-            ReassignSelectedProperties();
-
-            _selectedFigure = null;
-            _selectedArc = null;
-            TurnOnSelectMode();
-        }
-
-        private void MakeChangePriorityCommand(List<PetriNetNode> selectedF, List<VArc> selectedA, int change)
-        {
-            List<PetriNetNode> deletedFigures = new List<PetriNetNode>();
-            List<VArc> deletedArcs = new List<VArc>();
-            foreach (PetriNetNode figure in selectedF)
-            {
-                deletedFigures.Add(figure);
-                foreach (VArc arc in figure.ThisArcs)
-                    if (!deletedArcs.Contains(arc))
-                        deletedArcs.Add(arc);
-            }
-
-            foreach (VArc arc in selectedA)
-            {
-                if (!deletedArcs.Contains(arc))
-                    deletedArcs.Add(arc);
-            }
-
-            DeleteCommand newCommand = new DeleteCommand(deletedFigures, deletedArcs);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
         }
 
         private void btnZoomMinus_Click(object sender, RoutedEventArgs e)
@@ -396,8 +225,6 @@ namespace PNEditorEditView
             if (_scaleTransform.ScaleX > 0.05)
             {
                 btnSelect.IsEnabled = true;
-                //if (btnEditMode.IsVisible == false)
-                //    EnableAddButtons();
                 _scaleTransform.ScaleX /= ScaleRate;
                 _scaleTransform.ScaleY /= ScaleRate;
                 _thisScale /= ScaleRate;
@@ -419,8 +246,6 @@ namespace PNEditorEditView
             if (_scaleTransform.ScaleX < 17.5)
             {
                 btnSelect.IsEnabled = true;
-                //if (btnEditMode.IsVisible == false)
-                //    EnableAddButtons();
                 _scaleTransform.ScaleX *= ScaleRate;
                 _scaleTransform.ScaleY *= ScaleRate;
                 _thisScale *= ScaleRate;
@@ -437,73 +262,96 @@ namespace PNEditorEditView
             }
         }
 
-        public void ChangeNumberOfTokensWithCommand(VPlace place, int num)
+        private void btnTokenNumberChangeFieldOk_Click(object sender, RoutedEventArgs e)
         {
-            //btnSelect.IsEnabled = true;
-            //if (_isNumberOfTokensInt == false)
-            //{
-            //    MessageBox.Show(INCORRECTDATA01);
-            //    tbTokenNumber.Text = "";
-            //    tbTokenNumber.Focus();
-            //}
-            //else if (_numberOfTokensChanged < 0)
-            //{
-            //    MessageBox.Show(INCORRECTDATA);
-            //    tbTokenNumber.Text = "";
-            //    tbTokenNumber.Focus();
-            //}
-            //else
-            //{
-            if (place.NumberOfTokens != 0)
+            btnSelect.IsEnabled = true;
+            if (_isNumberOfTokensInt == false)
             {
-                if (place.NumberOfTokens < 5)
-                    RemoveTokens(place);
-                else
-                    MainModelCanvas.Children.Remove(place.NumberOfTokensLabel);
+                MessageBox.Show(INCORRECTDATA01);
+                tbTokenNumber.Text = "";
+                tbTokenNumber.Focus();
             }
+            else if (_numberOfTokensChanged < 0)
+            {
+                MessageBox.Show(INCORRECTDATA);
+                tbTokenNumber.Text = "";
+                tbTokenNumber.Focus();
+            }
+            else
+            {
+                if (_markedPlace.NumberOfTokens != 0)
+                {
+                    if (_markedPlace.NumberOfTokens < 5)
+                        RemoveTokens(_markedPlace);
+                    else
+                        MainModelCanvas.Children.Remove(_markedPlace.NumberOfTokensLabel);
+                }
+                AddTokensCommand newCommand = new AddTokensCommand(_markedPlace, _markedPlace.NumberOfTokens,
+                    _numberOfTokensChanged);
+                Command.ExecutedCommands.Push(newCommand);
+                Command.CanceledCommands.Clear();
+                _markedPlace.NumberOfTokens = _numberOfTokensChanged;
 
-            AddTokensCommand newCommand = new AddTokensCommand(place, place.NumberOfTokens,
-                num);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
-            place.NumberOfTokens = num;
+                if (_markedPlace.NumberOfTokens == 0)
+                    RemoveTokens(_markedPlace);
+                if (_markedPlace.NumberOfTokens >= 0 && _markedPlace.NumberOfTokens < 5)
+                    MainModelCanvas.Children.Remove(_markedPlace.NumberOfTokensLabel);
+                AddTokens(_markedPlace);
 
-            if (place.NumberOfTokens == 0)
-                RemoveTokens(place);
-            if (place.NumberOfTokens >= 0 && place.NumberOfTokens < 5)
-                MainModelCanvas.Children.Remove(place.NumberOfTokensLabel);
-            AddTokens(place);
-
-            TurnOnSelectMode();
-            //}
+                TurnOnSelectMode();
+            }
         }
 
-        public void ChangePriorityWithCommand(VTransition transition, int priority)
+        private void btnPriorityChangeFieldOk_Click(object sender, RoutedEventArgs e)
         {
-            //btnSelect.IsEnabled = true;
-            //if (_isPriorityInt == false)
-            //{
-            //    MessageBox.Show(INCORRECTDATA01);
-            //    tbPriority.Text = "";
-            //    tbPriority.Focus();
-            //}
-            //else if (_priorityChanged < 0)
-            //{
-            //    MessageBox.Show(INCORRECTDATA);
-            //    tbPriority.Text = "";
-            //    tbPriority.Focus();
-            //}
-            //else
-            //{
-            List<VTransition> list = new List<VTransition>();
-            list.Add(transition);
-            ChangePriorityCommand newCommand = new ChangePriorityCommand(list, priority);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
-            transition.Priority = priority;
+            btnSelect.IsEnabled = true;
+            if (_isPriorityInt == false)
+            {
+                MessageBox.Show(INCORRECTDATA01);
+                tbPriority.Text = "";
+                tbPriority.Focus();
+            }
+            else if (_priorityChanged < 0)
+            {
+                MessageBox.Show(INCORRECTDATA);
+                tbPriority.Text = "";
+                tbPriority.Focus();
+            }
+            else
+            {
+                List<VTransition> list = new List<VTransition>();
+                list.Add(_markedTransition);
+                ChangePriorityCommand newCommand = new ChangePriorityCommand(list, _priorityChanged);
+                Command.ExecutedCommands.Push(newCommand);
+                Command.CanceledCommands.Clear();
+                _markedTransition.Priority = _priorityChanged;
 
-            TurnOnSelectMode();
-            //}
+                TurnOnSelectMode();
+            }
+        }
+
+        private void btnPriorityChangeFieldMinus_Click(object sender, RoutedEventArgs e)
+        {
+            btnSelect.IsEnabled = true;
+
+            _markedTransition = _selectedFigure as VTransition;
+            if (_priorityChanged != 0)
+                _priorityChanged -= 1;
+            else MessageBox.Show(INCORRECTDATA02);
+            tbPriority.Focus();
+            tbPriority.Text = _priorityChanged.ToString();
+        }
+
+        private void btnTokenNumberChangeFieldMinus_Click(object sender, RoutedEventArgs e)
+        {
+            btnSelect.IsEnabled = true;
+
+            _markedPlace = _selectedFigure as VPlace;
+            if (_numberOfTokensChanged != 0)
+                _numberOfTokensChanged -= 1;
+            else MessageBox.Show(INCORRECTDATA02);
+            tbTokenNumber.Focus();
+            tbTokenNumber.Text = _numberOfTokensChanged.ToString();
         }
 
         private void btnTieToMesh_Click(object sender, RoutedEventArgs e)
@@ -519,50 +367,38 @@ namespace PNEditorEditView
             TurnOnSelectMode();
         }
 
-        public void ChangeWeightWithCommand(VArc arc, int weight)
+        private void btnWeightOK_Click(object sender, RoutedEventArgs e)
         {
-            //btnSelect.IsEnabled = true;
-            //if (_isPriorityInt == false)
-            //{
-            //    MessageBox.Show(INCORRECTDATA01);
-            //    tbPriority.Text = "";
-            //    tbPriority.Focus();
-            //}
-            //else if (_priorityChanged < 0)
-            //{
-            //    MessageBox.Show(INCORRECTDATA);
-            //    tbPriority.Text = "";
-            //    tbPriority.Focus();
-            //}
-            //else
-            //{
-
-            ChangeWeightCommand newCommand = new ChangeWeightCommand(arc, arc.Weight.ToString(), weight.ToString(),
-                arc.WeightLabel, arc.WeightLabel);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
-            arc.Weight = weight.ToString();
-
-            TurnOnSelectMode();
-            //}
+            btnSelect.IsEnabled = true;
+            {
+                if (isArcWeightInt == false)
+                {
+                    MessageBox.Show(INCORRECTDATA01);
+                    tbArcWeight.Text = "";
+                    tbArcWeight.Focus();
+                }
+                else if (arcWeigth < 1)
+                {
+                    MessageBox.Show(INCORRECTDATA03);
+                    tbArcWeight.Text = "";
+                    tbArcWeight.Focus();
+                }
+            }
         }
 
         private void btnClearWorkingField_Click(object sender, RoutedEventArgs e)
         {
             btnSelect.IsEnabled = true;
-            EnableAddButtons();
 
             if (MessageBox.Show(CLEARCANVAS00, CLEARCANVAS01,
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 List<PetriNetNode> figures = Net.Nodes.ToList();
                 List<VArc> arcs = Net.arcs.ToList();
                 MakeDeleteCommand(figures, arcs);
                 DeleteFigures(figures, arcs);
-                btnUndo.IsEnabled = true;
                 HideAllProperties();
             }
-
             TurnOnSelectMode();
         }
 
@@ -572,59 +408,43 @@ namespace PNEditorEditView
             ImportExport.BitmapExporter.SaveModelAsAPicture(MainModelCanvas, Net.Nodes);
 
             TurnOnSelectMode();
-            EnableAddButtons();
         }
 
-
-        private void btnArrangeModel_Click(object sender, RoutedEventArgs e)
+        private void btnTokenNumberChangeFieldPlus_Click(object sender, RoutedEventArgs e)
         {
             btnSelect.IsEnabled = true;
 
-            _figuresBeforeDrag = CopyListOfFigures(Net.Nodes);
-
-            _arranger.ArrangePetriNetModel(Net.Nodes, Net.arcs, this);
-
-            _figuresAfterDrag = CopyListOfFigures(Net.Nodes);
-
-            Command.ExecutedCommands.Push(new DragCommand(_figuresBeforeDrag, _figuresAfterDrag));
-            Command.CanceledCommands.Clear();
-
-            btnUndo.IsEnabled = true;
-
-            VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
-
-            TurnOnSelectMode();
-            EnableAddButtons();
-            hideLabels = false;
+            _markedPlace = _selectedFigure as VPlace;
+            _numberOfTokensChanged += 1;
+            tbTokenNumber.Focus();
+            tbTokenNumber.Text = _numberOfTokensChanged.ToString();
         }
 
-        public void ChangeLabelWithCommand(PetriNetNode node, string label)
+        private void btnPriorityChangeFieldPlus_Click(object sender, RoutedEventArgs e)
         {
-            ChangeNameCommand newCommand = new ChangeNameCommand(node, node.Label, label);
+            btnSelect.IsEnabled = true;
+
+            _markedTransition = _selectedFigure as VTransition;
+            _priorityChanged += 1;
+            tbPriority.Focus();
+            tbPriority.Text = _priorityChanged.ToString();
+        }
+
+
+        private void btnOkName_Click(object sender, RoutedEventArgs e)
+        {
+
+            ChangeNameCommand newCommand = new ChangeNameCommand(_selectedFigure, _selectedFigure.Label, tbName.Text);
             Command.ExecutedCommands.Push(newCommand);
             Command.CanceledCommands.Clear();
 
-            ChangeLabel(node, label);
+            ChangeLabel(_selectedFigure, tbName.Text);
 
             btnShowHideLabels.IsEnabled = true;
             TurnOnSelectMode();
         }
 
-        private void TabWithMainModelCanvas_Click(object sender, RoutedEventArgs e)
-        {
-            pnlLeftToolPanel.Visibility = Visibility.Visible;
-        }
-
-        private void btnSetInitialState_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _leftMouseButtonMode = LeftMouseButtonMode.SetInitialState;
-            EnableAddButtons();
-            btnSetInitialState.IsEnabled = false;
-        }
-
         #endregion ClickHandlers
-
 
         #region PetriNetImportExport
 
@@ -655,7 +475,6 @@ namespace PNEditorEditView
             {
                 DrawFigure(figure);
             }
-
             foreach (VArc arc in Net.arcs)
             {
                 DisplayArc(arc);
@@ -673,49 +492,20 @@ namespace PNEditorEditView
 
         public void Deactivate()
         {
+            if (Unfolding.Basic != null)
+                MainController.Self.Net = Unfolding.Basic;
+            //reset model
+            btnReset_Click(null, null);
         }
 
         public void UserControlKeyDown(object sender, KeyEventArgs e)
         {
-            Console.WriteLine(e.Key);
-            if (e.Key == Key.Delete)
-            {
-                if (alreadyDeleted == false)
-                {
-                    btnDelete_Click(sender, e);
-                    alreadyDeleted = true;
-                }
-                else alreadyDeleted = false;
-            }
 
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
             {
                 isCtrlPressed = true;
             }
 
-            if (e.Key == Key.C && isCtrlPressed)
-            {
-                btnCopy_Click(sender, e);
-                isCtrlPressed = false;
-            }
-
-            if (e.Key == Key.X && isCtrlPressed)
-            {
-                btnCut_Click(sender, e);
-                isCtrlPressed = false;
-            }
-
-            if (e.Key == Key.V && isCtrlPressed)
-            {
-                btnPaste_Click(sender, e);
-                isCtrlPressed = false;
-            }
-
-            if (e.Key == Key.Z && isCtrlPressed)
-            {
-                btnUndo_Click(sender, e);
-                isCtrlPressed = false;
-            }
         }
 
         private void CanvasSizeChanged(object sender, RoutedEventArgs e)
@@ -820,6 +610,7 @@ namespace PNEditorEditView
                         RemoveTokens(f as VPlace);
                         AddTokens(f as VPlace);
                     }
+                    tbName.Focus();
                 }
 
                 foreach (var arc in Net.arcs)
@@ -853,13 +644,11 @@ namespace PNEditorEditView
                     _width = -_width;
                     _leftX = actualX;
                 }
-
                 if (_selectingYpoint > actualY)
                 {
                     _height = -_height;
                     _topY = actualY;
                 }
-
                 _selectRect.Height = _height;
                 _selectRect.Width = _width;
 
@@ -875,198 +664,158 @@ namespace PNEditorEditView
         {
             _isFiguresMoving = false;
             _movingHappened = false;
-            if (e.ChangedButton == MouseButton.Right)
-            {
-                if (_leftMouseButtonMode != LeftMouseButtonMode.Select)
-                {
-                    btnSelect_Click(sender, e);
-                    return; //do not handle click by buttons
-                }
-            }
-
             switch (_leftMouseButtonMode)
             {
                 case LeftMouseButtonMode.AddPlace:
-                {
-                    if (_modeTieToMesh == ModeTieToMesh.NotTie)
-                        AddPlace(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y);
-                    else
                     {
-                        double newX, newY;
-                        PlaceNodeInTheNearestMesh(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y,
-                            "place", out newX, out newY);
-                        AddPlace(newX, newY);
+                        if (_modeTieToMesh == ModeTieToMesh.NotTie)
+                            AddPlace(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y);
+                        else
+                        {
+                            double newX, newY;
+                            PlaceNodeInTheNearestMesh(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y, "place", out newX, out newY);
+                            AddPlace(newX, newY);
+                        }
                     }
-                }
                     break;
                 case LeftMouseButtonMode.AddTransition:
-                {
-                    if (_modeTieToMesh == ModeTieToMesh.NotTie)
-                        AddTransition(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y);
-                    else
                     {
-                        double newX, newY;
-                        PlaceNodeInTheNearestMesh(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y,
-                            "transition", out newX, out newY);
-                        AddTransition(newX, newY);
+                        if (_modeTieToMesh == ModeTieToMesh.NotTie)
+                            AddTransition(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y);
+                        else
+                        {
+                            double newX, newY;
+                            PlaceNodeInTheNearestMesh(e.GetPosition(MainModelCanvas).X, e.GetPosition(MainModelCanvas).Y, "transition", out newX, out newY);
+                            AddTransition(newX, newY);
+                        }
                     }
-                }
                     break;
                 case LeftMouseButtonMode.AddArc:
-                {
-                    _lineArcDrawing.Visibility = Visibility.Visible;
-                    if (e.ButtonState == MouseButtonState.Pressed)
                     {
-                        _lineArcDrawing.X1 = e.GetPosition(MainModelCanvas).X;
-                        _lineArcDrawing.Y1 = e.GetPosition(MainModelCanvas).Y;
+                        _lineArcDrawing.Visibility = Visibility.Visible;
+                        if (e.ButtonState == MouseButtonState.Pressed)
+                        {
+                            _lineArcDrawing.X1 = e.GetPosition(MainModelCanvas).X;
+                            _lineArcDrawing.Y1 = e.GetPosition(MainModelCanvas).Y;
+                        }
                     }
-                }
                     break;
                 case LeftMouseButtonMode.Select:
-                {
-                    _selecting = true;
-                    _selectingXpoint = e.GetPosition(MainModelCanvas).X;
-                    _selectingYpoint = e.GetPosition(MainModelCanvas).Y;
-                    if (isCtrlPressed == false)
                     {
-                        UnselectFigures(); //(selectedFigures, selectedArcs);
-                        HideAllProperties();
+                        _selecting = true;
+                        _selectingXpoint = e.GetPosition(MainModelCanvas).X;
+                        _selectingYpoint = e.GetPosition(MainModelCanvas).Y;
+                        if (isCtrlPressed == false)
+                        {
+                            UnselectFigures();//(selectedFigures, selectedArcs);
+                            HideAllProperties();
+                        }
                     }
-                }
                     break;
             }
         }
 
         private void canvas1_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (Command.CanceledCommands.Count == 0)
-                btnRedo.IsEnabled = false;
 
             _figuresAfterDrag = CopyListOfFigures(Net.Nodes);
             switch (_leftMouseButtonMode)
             {
-                case LeftMouseButtonMode.AddPlace:
-                {
-                    btnAddPlace.Focus();
-                }
-                    break;
-                case LeftMouseButtonMode.AddTransition:
-                {
-                    btnAddTransition.Focus();
-                }
-                    break;
+
                 case LeftMouseButtonMode.AddArc:
-                {
-                    _lineArcDrawing.Visibility = Visibility.Hidden;
-                }
-                    break;
-                case LeftMouseButtonMode.AddToken:
-                {
-                    btnAddToken.Focus();
-                }
+                    {
+                        _lineArcDrawing.Visibility = Visibility.Hidden;
+                    }
                     break;
                 case LeftMouseButtonMode.Select:
-                {
-                    _selectRect.Visibility = Visibility.Hidden;
-                    if (_isFiguresMoving)
                     {
-                        var newCommand = new DragCommand(_figuresBeforeDrag, _figuresAfterDrag);
-                        Command.ExecutedCommands.Push(newCommand);
-                        Command.CanceledCommands.Clear();
-
-                        btnUndo.IsEnabled = true;
-                    }
-                    else
-                    {
-                        if (_movingHappened == false) //(selecting == false)
+                        _selectRect.Visibility = Visibility.Hidden;
+                        if (_isFiguresMoving)
                         {
-                            if (_selectedFigure != null)
-                            {
-                                if (_selectedFigure.IsSelect == false)
-                                {
-                                    _selectedFigures.Remove(_selectedFigure);
-                                    if (_selectedFigure is VPlace)
-                                    {
-                                        var blackEllipse = GetKeyByValueForFigures(_selectedFigure) as Ellipse;
-                                        blackEllipse.Stroke = Brushes.Black;
-                                    }
-                                    else
-                                    {
-                                        var blackRectangle = GetKeyByValueForFigures(_selectedFigure) as Rectangle;
-                                        blackRectangle.Stroke = Brushes.Black;
-                                    }
+                            var newCommand = new DragCommand(_figuresBeforeDrag, _figuresAfterDrag);
+                            Command.ExecutedCommands.Push(newCommand);
+                            Command.CanceledCommands.Clear();
 
-                                    _selectedFigure = null;
-                                }
-                            }
-
-                            if (_selectedArc != null)
-                            {
-                                if (_selectedArc.IsSelect == false)
-                                {
-                                    _selectedArcs.Remove(_selectedArc);
-                                    ColorArrow(_selectedArc);
-                                    _selectedArc = null;
-                                }
-                            }
-
-                            ReassignSelectedProperties();
                         }
                         else
                         {
-                            foreach (var figure in Net.Nodes)
+                            if (_movingHappened == false) //(selecting == false)
                             {
-                                var coordX = figure.CoordX;
-                                double coordY = figure.CoordY;
-                                int x, y;
-                                if (figure is VPlace)
+                                if (_selectedFigure != null)
                                 {
-                                    x = y = 30;
-                                }
-                                else
-                                {
-                                    x = 20;
-                                    y = 50;
+                                    if (_selectedFigure.IsSelect == false)
+                                    {
+                                        _selectedFigures.Remove(_selectedFigure);
+                                        if (_selectedFigure is VPlace)
+                                        {
+                                            var blackEllipse = GetKeyByValueForFigures(_selectedFigure) as Ellipse;
+                                            blackEllipse.Stroke = Brushes.Black;
+                                        }
+                                        else
+                                        {
+                                            var blackRectangle = GetKeyByValueForFigures(_selectedFigure) as Rectangle;
+                                            blackRectangle.Stroke = Brushes.Black;
+                                        }
+                                        _selectedFigure = null;
+                                    }
+                                    btnOkName.IsEnabled = false;
+                                    btnTokenNumberChangeFieldOk.IsEnabled = false;
+                                    tbName.Focus();
                                 }
 
-                                if (coordX + x > _leftX && coordX < _leftX + _width && coordY < _topY + _height &&
-                                    coordY + y > _topY)
+                                if (_selectedArc != null)
                                 {
-                                    figure.IsSelect = true;
-                                    MakeSelected(figure);
+                                    if (_selectedArc.IsSelect == false)
+                                    {
+                                        _selectedArcs.Remove(_selectedArc);
+                                        ColorArrow(_selectedArc);
+                                        _selectedArc = null;
+                                    }
+                                    tbArcWeight.Focus();
                                 }
-                                else
-                                {
-                                    figure.IsSelect = false;
-                                    (GetKeyByValueForFigures(figure) as Shape).Stroke = Brushes.Black;
-                                    _selectedFigures.Remove(figure);
-                                }
+                                ReassignSelectedProperties();
                             }
-
-                            foreach (var arc in Net.arcs)
+                            else
                             {
-                                if (_selectedFigures.Contains(arc.From) && _selectedFigures.Contains(arc.To))
+                                foreach (var figure in Net.Nodes)
                                 {
-                                    arc.IsSelect = true;
-                                    _selectedArcs.Add(arc);
+                                    var coordX = figure.CoordX;
+                                    double coordY = figure.CoordY;
+                                    int x, y;
+                                    if (figure is VPlace) { x = y = 30; } else { x = 20; y = 50; }
+                                    if (coordX + x > _leftX && coordX < _leftX + _width && coordY < _topY + _height && coordY + y > _topY)
+                                    {
+                                        figure.IsSelect = true;
+                                        MakeSelected(figure);
+                                    }
+                                    else
+                                    {
+                                        figure.IsSelect = false;
+                                        (GetKeyByValueForFigures(figure) as Shape).Stroke = Brushes.Black;
+                                        _selectedFigures.Remove(figure);
+                                    }
                                 }
-                                else
+                                foreach (var arc in Net.arcs)
                                 {
-                                    arc.IsSelect = false;
-                                    _selectedArcs.Remove(arc);
+                                    if (_selectedFigures.Contains(arc.From) && _selectedFigures.Contains(arc.To))
+                                    {
+                                        arc.IsSelect = true;
+                                        _selectedArcs.Add(arc);
+                                    }
+                                    else
+                                    {
+                                        arc.IsSelect = false;
+                                        _selectedArcs.Remove(arc);
+                                    }
+                                    ColorArrow(arc);
                                 }
-
-                                ColorArrow(arc);
+                                ReassignSelectedProperties();
                             }
-
-                            ReassignSelectedProperties();
+                            _selecting = false;
                         }
 
-                        _selecting = false;
+                        VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
                     }
-
-                    VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
-                }
                     break;
             }
         }
@@ -1106,44 +855,43 @@ namespace PNEditorEditView
             switch (_leftMouseButtonMode)
             {
                 case LeftMouseButtonMode.AddArc:
-                {
-                    _isFigurePressed = true;
-                    _tempFrom = GetSenderPlace(sender);
-                }
+                    {
+                        _isFigurePressed = true;
+                        _tempFrom = GetSenderPlace(sender);
+                    }
                     break;
                 case LeftMouseButtonMode.Select:
-                {
-                    _selecting = false;
-                    if (_isFiguresMoving == false)
                     {
-                        _selectedFigure = GetSenderPlace(sender);
-                        _mainFigure = _selectedFigure;
-                        _numberOfTokensChanged = (_selectedFigure as VPlace).NumberOfTokens;
-                        SelectOrUnselectFigure();
-                        MakeSelected(_selectedFigure);
-                        CountDistancesBetweenTheDruggedNodeAndOtherNodes();
+                        _selecting = false;
+                        if (_isFiguresMoving == false)
+                        {
+                            _selectedFigure = GetSenderPlace(sender);
+                            _mainFigure = _selectedFigure;
+                            _numberOfTokensChanged = (_selectedFigure as VPlace).NumberOfTokens;
+                            SelectOrUnselectFigure();
+                            MakeSelected(_selectedFigure);
+                            CountDistancesBetweenTheDruggedNodeAndOtherNodes();
+                            tbName.Focus();
+                        }
+                        e.Handled = true;
                     }
-
-                    e.Handled = true;
-                }
                     break;
                 case LeftMouseButtonMode.AddToken:
-                {
-                    _markedPlace = GetSenderPlace(sender);
-                    _markedPlace.NumberOfTokens += 1;
-                    //if (_selectedFigure == _markedPlace)
-                    //    tbTokenNumber.Text = _markedPlace.NumberOfTokens.ToString();
-                    if (_markedPlace.NumberOfTokens == 0)
-                        RemoveTokens(_markedPlace);
-                    if (_markedPlace.NumberOfTokens >= 0 && _markedPlace.NumberOfTokens < 5)
-                        MainModelCanvas.Children.Remove(_markedPlace.NumberOfTokensLabel);
-                    AddTokens(_markedPlace);
-                    AddTokensCommand newCommand = new AddTokensCommand(_markedPlace, _markedPlace.NumberOfTokens - 1,
-                        _markedPlace.NumberOfTokens);
-                    Command.ExecutedCommands.Push(newCommand);
-                    Command.CanceledCommands.Clear();
-                    e.Handled = true;
-                }
+                    {
+                        _markedPlace = GetSenderPlace(sender);
+                        _markedPlace.NumberOfTokens += 1;
+                        if (_selectedFigure == _markedPlace)
+                            tbTokenNumber.Text = _markedPlace.NumberOfTokens.ToString();
+                        if (_markedPlace.NumberOfTokens == 0)
+                            RemoveTokens(_markedPlace);
+                        if (_markedPlace.NumberOfTokens >= 0 && _markedPlace.NumberOfTokens < 5)
+                            MainModelCanvas.Children.Remove(_markedPlace.NumberOfTokensLabel);
+                        AddTokens(_markedPlace);
+                        AddTokensCommand newCommand = new AddTokensCommand(_markedPlace, _markedPlace.NumberOfTokens - 1, _markedPlace.NumberOfTokens);
+                        Command.ExecutedCommands.Push(newCommand);
+                        Command.CanceledCommands.Clear();
+                        e.Handled = true;
+                    }
                     break;
             }
         }
@@ -1153,22 +901,22 @@ namespace PNEditorEditView
             switch (_leftMouseButtonMode)
             {
                 case LeftMouseButtonMode.AddArc:
-                {
-                    if (_isFigurePressed)
                     {
-                        _isFigurePressed = false;
-                        _tempTo = GetSenderPlace(sender);
-                        if (_tempFrom is VPlace)
-                            MessageBox.Show(ARCSBETWEENPLACES);
-                        else
+                        if (_isFigurePressed)
                         {
-                            VArc newArc = AddArc(_tempFrom, _tempTo);
-                            AddArcCommand newCommand = new AddArcCommand(newArc);
-                            Command.ExecutedCommands.Push(newCommand);
-                            Command.CanceledCommands.Clear();
+                            _isFigurePressed = false;
+                            _tempTo = GetSenderPlace(sender);
+                            if (_tempFrom is VPlace)
+                                MessageBox.Show(ARCSBETWEENPLACES);
+                            else
+                            {
+                                VArc newArc = AddArc(_tempFrom, _tempTo);
+                                AddArcCommand newCommand = new AddArcCommand(newArc);
+                                Command.ExecutedCommands.Push(newCommand);
+                                Command.CanceledCommands.Clear();
+                            }
                         }
                     }
-                }
                     break;
             }
         }
@@ -1180,25 +928,40 @@ namespace PNEditorEditView
             switch (_leftMouseButtonMode)
             {
                 case LeftMouseButtonMode.AddArc:
-                {
-                    _isFigurePressed = true;
-                    _allFiguresObjectReferences.TryGetValue(sender, out _tempFrom);
-                }
+                    {
+                        _isFigurePressed = true;
+                        _allFiguresObjectReferences.TryGetValue(sender, out _tempFrom);
+                    }
                     break;
                 case LeftMouseButtonMode.Select:
-                {
-                    _selecting = false;
-                    if (_isFiguresMoving == false)
                     {
-                        _allFiguresObjectReferences.TryGetValue(sender, out _selectedFigure);
-                        _mainFigure = _selectedFigure;
-                        SelectOrUnselectFigure();
-                        MakeSelected(_selectedFigure);
-                        CountDistancesBetweenTheDruggedNodeAndOtherNodes();
+                        _selecting = false;
+                        if (_isFiguresMoving == false)
+                        {
+                            _allFiguresObjectReferences.TryGetValue(sender, out _selectedFigure);
+                            _mainFigure = _selectedFigure;
+                            SelectOrUnselectFigure();
+                            MakeSelected(_selectedFigure);
+                            CountDistancesBetweenTheDruggedNodeAndOtherNodes();
+                            tbName.Focus();
+                        }
+                        e.Handled = true;
                     }
-
-                    e.Handled = true;
-                }
+                    break;
+                case LeftMouseButtonMode.ChooseTransition:
+                    {
+                        PetriNetNode outgoing;
+                        _allFiguresObjectReferences.TryGetValue(sender, out outgoing);
+                        enabledTransition = outgoing as VTransition;
+                        _isTransitionSelected = true;
+                        //foreach (Transition transition in Transition.transitions)
+                        foreach (VTransition transition in Net.transitions)
+                        {
+                            (GetKeyByValueForFigures(transition)
+                                as Shape).Stroke = Brushes.Black;
+                        }
+                        btnOneStepSimulate_Click(new object(), new RoutedEventArgs());
+                    }
                     break;
             }
         }
@@ -1208,25 +971,25 @@ namespace PNEditorEditView
             switch (_leftMouseButtonMode)
             {
                 case LeftMouseButtonMode.AddArc:
-                {
-                    if (_isFigurePressed)
                     {
-                        _isFigurePressed = false;
-                        _allFiguresObjectReferences.TryGetValue(sender, out _tempTo);
-                        if (_tempFrom != _tempTo)
+                        if (_isFigurePressed)
                         {
-                            if (_tempFrom is VTransition)
-                                MessageBox.Show(ARCSBETWEENTRANSITIONS);
-                            else
+                            _isFigurePressed = false;
+                            _allFiguresObjectReferences.TryGetValue(sender, out _tempTo);
+                            if (_tempFrom != _tempTo)
                             {
-                                VArc newArc = AddArc(_tempFrom, _tempTo);
-                                AddArcCommand newCommand = new AddArcCommand(newArc);
-                                Command.ExecutedCommands.Push(newCommand);
-                                Command.CanceledCommands.Clear();
+                                if (_tempFrom is VTransition)
+                                    MessageBox.Show(ARCSBETWEENTRANSITIONS);
+                                else
+                                {
+                                    VArc newArc = AddArc(_tempFrom, _tempTo);
+                                    AddArcCommand newCommand = new AddArcCommand(newArc);
+                                    Command.ExecutedCommands.Push(newCommand);
+                                    Command.CanceledCommands.Clear();
+                                }
                             }
                         }
                     }
-                }
                     break;
             }
         }
@@ -1245,7 +1008,7 @@ namespace PNEditorEditView
             if (isCtrlPressed == false && (_selectedFigures.Count + _selectedArcs.Count != 0) &&
                 _selectedArc.IsSelect == false)
             {
-                UnselectFigures(); //(selectedFigures, selectedArcs);
+                UnselectFigures();//(selectedFigures, selectedArcs);
             }
 
             _selectedArc.IsSelect = _selectedArc.IsSelect == false;
@@ -1256,8 +1019,50 @@ namespace PNEditorEditView
                 ColorArrow(_selectedArc);
                 ReassignSelectedProperties();
             }
-
             e.Handled = true;
+        }
+        private void tbPriorityPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    btnPriorityChangeFieldPlus_Click(sender, e);
+                    e.Handled = true;
+                    break;
+                case Key.Down:
+                    btnPriorityChangeFieldMinus_Click(sender, e);
+                    e.Handled = true;
+                    break;
+                case Key.Enter:
+                    btnPriorityChangeFieldOk_Click(sender, e);
+                    break;
+            }
+        }
+
+        private void tbTokenNumberPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    btnTokenNumberChangeFieldPlus_Click(sender, e);
+                    e.Handled = true;
+                    break;
+                case Key.Down:
+                    btnTokenNumberChangeFieldMinus_Click(sender, e);
+                    e.Handled = true;
+                    break;
+                case Key.Enter:
+                    btnTokenNumberChangeFieldOk_Click(sender, e);
+                    break;
+            }
+        }
+
+        private void tbName_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                btnOkName_Click(sender, e);
+            }
         }
 
         private void MainTabControlWithModelCanvases_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1265,11 +1070,57 @@ namespace PNEditorEditView
             //todo: this does not matter, no tabs in future
         }
 
+        private void tbName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            btnOkName.IsEnabled = true;
+        }
+
+        private void tbTokenNumber_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!tbTokenNumber.IsFocused) return;
+            _markedPlace = _selectedFigure as VPlace;
+            _isNumberOfTokensInt = int.TryParse(tbTokenNumber.Text, out _numberOfTokensChanged);
+            btnTokenNumberChangeFieldOk.IsEnabled = true;
+        }
+
+        private void tbPriority_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!tbPriority.IsFocused) return;
+            _markedTransition = _selectedFigure as VTransition;
+            _isPriorityInt = int.TryParse(tbPriority.Text, out _priorityChanged);
+            btnPriorityChangeFieldOk.IsEnabled = true;
+        }
 
         double arcWeigth;
-
         bool isArcWeightInt;
         //todo What is it?
+        private void tbArcWeight_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            isArcWeightInt = double.TryParse(tbArcWeight.Text.Replace('.', ','), out arcWeigth);
+            tbArcWeight.Text = tbArcWeight.Text.Replace(',', '.');
+            btnWeightOK.IsEnabled = true;
+        }
+
+        private void tbArcWeight_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Down)
+            {
+                if (arcWeigth != 1)
+                    arcWeigth -= 1;
+                else
+                    MessageBox.Show(INCORRECTDATA03);
+                tbArcWeight.Text = arcWeigth.ToString();
+            }
+            if (e.Key == Key.Up)
+            {
+                arcWeigth += 1;
+                tbArcWeight.Text = arcWeigth.ToString();
+            }
+            if (e.Key == Key.Enter)
+            {
+                btnWeightOK_Click(sender, e);
+            }
+        }
 
         #endregion Events 
 
@@ -1280,8 +1131,9 @@ namespace PNEditorEditView
             Stopwatch.Stop();
         }
 
-        public delegate void ShowNameDelegate(string name);
+        #region vars
 
+        public delegate void ShowNameDelegate(string name);
         public static ShowNameDelegate ShowMainWindowTitleDelegate;
 
         private readonly Line[] _arrowHeads = new Line[2];
@@ -1290,28 +1142,15 @@ namespace PNEditorEditView
 
         private enum LeftMouseButtonMode
         {
-            Select,
-            Delete,
-            AddPlace,
-            AddTransition,
-            AddArc,
-            AddToken,
-            ChooseTransition,
-            SetInitialState,
-            AddFinalState,
-            PriorityUp,
-            PriorityDown
+            Select, Delete,
+            AddPlace, AddTransition, AddArc, AddToken,
+            ChooseTransition, SetInitialState, AddFinalState, PriorityUp, PriorityDown
         };
 
         private LeftMouseButtonMode _leftMouseButtonMode = LeftMouseButtonMode.Select;
         //TODO закрыть
 
-        private enum Choice
-        {
-            Forced,
-            Random
-        };
-
+        private enum Choice { Forced, Random };
         private Choice _modeChoice = Choice.Random;
 
         private Line _lineArcDrawing = new Line();
@@ -1345,12 +1184,7 @@ namespace PNEditorEditView
         private double _leftX, _topY, _width, _height;
         private bool _movingHappened;
 
-        private enum ModeTieToMesh
-        {
-            Tie,
-            NotTie
-        }
-
+        private enum ModeTieToMesh { Tie, NotTie }
         private ModeTieToMesh _modeTieToMesh = ModeTieToMesh.NotTie;
         private bool _tie;
 
@@ -1364,25 +1198,23 @@ namespace PNEditorEditView
 
         private int _currentRow;
 
-        public enum SyncModeEnum
-        {
-            Sync,
-            Async
-        };
-
+        public enum SyncModeEnum { Sync, Async };
         public static SyncModeEnum SyncMode;
 
 
         private bool _firstFocusOnTab = true;
 
+        #endregion
+
+        #region Drawning
         private void AddSelectRectangeOnCanvas(Rectangle selectedRect)
         {
             selectedRect.Stroke = Brushes.Blue;
             selectedRect.StrokeThickness = 1;
-            SolidColorBrush brush = new SolidColorBrush(Colors.Blue) {Opacity = 0.05};
+            SolidColorBrush brush = new SolidColorBrush(Colors.Blue) { Opacity = 0.05 };
             selectedRect.Fill = brush;
             selectedRect.Visibility = Visibility.Hidden;
-            selectedRect.StrokeDashArray = new DoubleCollection() {3};
+            selectedRect.StrokeDashArray = new DoubleCollection() { 3 };
             MainModelCanvas.Children.Add(selectedRect);
         }
 
@@ -1391,8 +1223,6 @@ namespace PNEditorEditView
             foreach (VArc arc in arcs)
             {
                 Shape nextArcForRemove = GetKeyByValueForArcs(arc, DictionaryForArcs);
-                if (nextArcForRemove == null)
-                    break;
                 DictionaryForArcs.Remove(nextArcForRemove);
                 nextArcForRemove.Stroke = Brushes.Black;
                 MainModelCanvas.Children.Remove(nextArcForRemove);
@@ -1419,7 +1249,6 @@ namespace PNEditorEditView
         private void DeleteFigures(List<PetriNetNode> selectedF, List<VArc> selectedA)
         {
             _leftMouseButtonMode = LeftMouseButtonMode.Delete;
-            EnableAddButtons();
 
             if (selectedF.Count != 0)
             {
@@ -1449,7 +1278,6 @@ namespace PNEditorEditView
                     if (!deletedArcs.Contains(arc))
                         deletedArcs.Add(arc);
             }
-
             foreach (VArc arc in selectedA)
             {
                 if (!deletedArcs.Contains(arc))
@@ -1491,10 +1319,8 @@ namespace PNEditorEditView
                     {
                         AddMoreThan1000Tokens(changedPlace, changedPlace.NumberOfTokensLabel);
                     }
-
                     break;
             }
-
             if (changedPlace.NumberOfTokens > 0 && changedPlace.NumberOfTokens < 5)
             {
                 foreach (Ellipse ellipse in changedPlace.TokensList)
@@ -1518,6 +1344,7 @@ namespace PNEditorEditView
             int w, h;
             if (temp is Rectangle)
             {
+
                 w = TRANSITIONWIDTH;
                 h = TRANSITIONHEIGHT;
             }
@@ -1526,10 +1353,9 @@ namespace PNEditorEditView
                 w = PLACEWIDTH;
                 h = PLACEHEIGHT;
             }
-
             temp.Width = w;
             temp.Height = h;
-            SolidColorBrush brush = new SolidColorBrush(Colors.White) {Opacity = 0};
+            SolidColorBrush brush = new SolidColorBrush(Colors.White) { Opacity = 0 };
             temp.Fill = brush;
             temp.StrokeThickness = 2;
             temp.Stroke = Brushes.Black;
@@ -1553,14 +1379,14 @@ namespace PNEditorEditView
             if (temp is Rectangle)
             {
                 newFigure = VTransition.Create(coordX, coordY);
-                Net.transitions.Add((VTransition) newFigure);
+                Net.transitions.Add((VTransition)newFigure);
                 temp.MouseDown += MouseTransitionDown;
                 temp.MouseUp += MouseTransitionUp;
             }
             else
             {
                 newFigure = VPlace.Create(coordX, coordY);
-                Net.places.Add((VPlace) newFigure);
+                Net.places.Add((VPlace)newFigure);
                 temp.MouseDown += MousePlaceDown;
                 temp.MouseUp += MousePlaceUp;
             }
@@ -1571,7 +1397,6 @@ namespace PNEditorEditView
 
             newFigure.DetectIdMatches(Net.Nodes);
             MainModelCanvas.Children.Add(temp);
-            btnUndo.IsEnabled = true;
 
             AddFigureCommand newCommand = new AddFigureCommand(newFigure, temp);
             Command.ExecutedCommands.Push(newCommand);
@@ -1590,8 +1415,8 @@ namespace PNEditorEditView
 
         public void PlaceNodeInTheNearestMesh(double coordX, double coordY, string figure, out double x, out double y)
         {
-            int column = (int) (coordX / PETRINETCELLWIDTH) + 1;
-            int row = (int) (coordY / PETRINETCELLHEIGHT) + 1;
+            int column = (int)(coordX / PETRINETCELLWIDTH) + 1;
+            int row = (int)(coordY / PETRINETCELLHEIGHT) + 1;
             double newX;
             double newY;
             if (figure == "place")
@@ -1604,7 +1429,6 @@ namespace PNEditorEditView
                 newX = 10 + PETRINETCELLWIDTH * (column - 1) + TRANSITIONWIDTH / 2;
                 newY = 10 + PETRINETCELLHEIGHT * (row - 1) + TRANSITIONHEIGHT / 2;
             }
-
             x = newX;
             y = newY;
         }
@@ -1615,7 +1439,7 @@ namespace PNEditorEditView
             if (sender is Label)
             {
                 foreach (VPlace place in Net.places)
-                    if (((Label) sender) == place.NumberOfTokensLabel)
+                    if (((Label)sender) == place.NumberOfTokensLabel)
                         selected = place;
             }
             else
@@ -1632,7 +1456,6 @@ namespace PNEditorEditView
                     _allFiguresObjectReferences.TryGetValue(sender, out selected);
                 }
             }
-
             return selected as VPlace;
         }
 
@@ -1652,13 +1475,12 @@ namespace PNEditorEditView
             foreach (var figure in toBeCopied)
             {
                 VPlace place = figure as VPlace;
-                list.Add((place != null) ? (PetriNetNode) place.Copy() : ((VTransition) figure).Copy());
+                list.Add((place != null) ? (PetriNetNode)place.Copy() : ((VTransition)figure).Copy());
             }
-
             return list;
         }
 
-        private void UnselectFigures() //(List<PetriNetNode> selectedF, List<Arc> selectedA)
+        private void UnselectFigures()//(List<PetriNetNode> selectedF, List<Arc> selectedA)
         {
             foreach (PetriNetNode figure in _selectedFigures)
             {
@@ -1667,7 +1489,6 @@ namespace PNEditorEditView
                 if (shape != null)
                     shape.Stroke = Brushes.Black;
             }
-
             foreach (VArc arc in _selectedArcs)
             {
                 arc.IsSelect = false;
@@ -1678,7 +1499,6 @@ namespace PNEditorEditView
                     (GetKeyByValueForArcs(arc, DictionaryForArrowHeads2)).Stroke = Brushes.Black;
                 }
             }
-
             _selectedFigures.Clear();
             _selectedArcs.Clear();
         }
@@ -1695,11 +1515,10 @@ namespace PNEditorEditView
         private void SelectOrUnselectFigure()
         {
             if (isCtrlPressed == false && (_selectedFigures.Count +
-                                           _selectedArcs.Count != 0) && _selectedFigure.IsSelect == false)
+                _selectedArcs.Count != 0) && _selectedFigure.IsSelect == false)
             {
-                UnselectFigures(); //(selectedFigures, selectedArcs);
+                UnselectFigures();//(selectedFigures, selectedArcs);
             }
-
             _selectedFigure.IsSelect = !_selectedFigures.Contains(_selectedFigure);
         }
 
@@ -1726,7 +1545,7 @@ namespace PNEditorEditView
         private void AddLabel(PetriNetNode figure, String label)
         {
             figure.Label = label;
-            var permanentLabel = new Label {Content = figure.Label};
+            var permanentLabel = new Label { Content = figure.Label };
 
             NodesToLabelsInCanvas.Add(figure, permanentLabel);
 
@@ -1753,10 +1572,8 @@ namespace PNEditorEditView
 
             newArc.DetectIdMatches(Net.arcs);
 
-            if (btnAddArc.IsEnabled == false)
-                newArc.IsDirected = true;
-            else if (btnNonOrientedArc.IsEnabled == false)
-                newArc.IsDirected = false;
+
+            newArc.IsDirected = true;
 
             if (DoesArcAlreadyExist(newArc, Net.arcs)) return newArc;
 
@@ -1787,7 +1604,6 @@ namespace PNEditorEditView
                     isExistInArcsList = true;
                     MessageBox.Show(ARCALREADYEXISTS);
                 }
-
             return isExistInArcsList;
         }
 
@@ -1810,13 +1626,13 @@ namespace PNEditorEditView
                     Point3 = point3
                 };
 
-                var myPathSegmentCollection = new PathSegmentCollection {bzSeg};
+                var myPathSegmentCollection = new PathSegmentCollection { bzSeg };
 
                 pthFigure.Segments = myPathSegmentCollection;
 
-                var pthFigureCollection = new PathFigureCollection {pthFigure};
+                var pthFigureCollection = new PathFigureCollection { pthFigure };
 
-                var pthGeometry = new PathGeometry {Figures = pthFigureCollection};
+                var pthGeometry = new PathGeometry { Figures = pthFigureCollection };
 
                 var arcPath = new System.Windows.Shapes.Path
                 {
@@ -1851,24 +1667,19 @@ namespace PNEditorEditView
         {
             if (e.GetPosition(GridMainField).Y > (GridMainField.ActualHeight - 60))
             {
-                ScrollViewerForMainModelCanvas.ScrollToVerticalOffset(
-                    ScrollViewerForMainModelCanvas.VerticalOffset + 0.3);
+                ScrollViewerForMainModelCanvas.ScrollToVerticalOffset(ScrollViewerForMainModelCanvas.VerticalOffset + 0.3);
             }
             else if (e.GetPosition(GridMainField).Y < 60)
             {
-                ScrollViewerForMainModelCanvas.ScrollToVerticalOffset(
-                    ScrollViewerForMainModelCanvas.VerticalOffset - 0.3);
+                ScrollViewerForMainModelCanvas.ScrollToVerticalOffset(ScrollViewerForMainModelCanvas.VerticalOffset - 0.3);
             }
-
             if (e.GetPosition(GridMainField).X > (GridMainField.ActualWidth - 60))
             {
-                ScrollViewerForMainModelCanvas.ScrollToHorizontalOffset(
-                    ScrollViewerForMainModelCanvas.HorizontalOffset + 0.3);
+                ScrollViewerForMainModelCanvas.ScrollToHorizontalOffset(ScrollViewerForMainModelCanvas.HorizontalOffset + 0.3);
             }
             else if (e.GetPosition(GridMainField).X < 60)
             {
-                ScrollViewerForMainModelCanvas.ScrollToHorizontalOffset(
-                    ScrollViewerForMainModelCanvas.HorizontalOffset - 0.3);
+                ScrollViewerForMainModelCanvas.ScrollToHorizontalOffset(ScrollViewerForMainModelCanvas.HorizontalOffset - 0.3);
             }
         }
 
@@ -1895,7 +1706,6 @@ namespace PNEditorEditView
                 DictionaryForArrowHeads1.Remove(GetKeyByValueForArcs(arc, DictionaryForArrowHeads1));
                 DictionaryForArrowHeads2.Remove(GetKeyByValueForArcs(arc, DictionaryForArrowHeads2));
             }
-
             var arcShape = GetKeyByValueForArcs(arc, DictionaryForArcs);
             DrawArrowHeads(arcShape);
 
@@ -1927,6 +1737,7 @@ namespace PNEditorEditView
                 if (arrow.X1 < arrow.X2)
                     arrowHead1.X1 = arrowHead2.X1 = arrow.X2 - 10;
                 else arrowHead1.X1 = arrowHead2.X1 = arrow.X2 + 10;
+
             }
             else
             {
@@ -1946,7 +1757,6 @@ namespace PNEditorEditView
                 arrowHead2.X1 = xTempPoint + xNormalVector;
                 arrowHead2.Y1 = yTempPoint + yNormalVector;
             }
-
             arrowHead1.X2 = arrow.X2;
             arrowHead1.Y2 = arrow.Y2;
             arrowHead2.X2 = arrow.X2;
@@ -1973,11 +1783,13 @@ namespace PNEditorEditView
             }
         }
 
+        #endregion
+
         private void SetNewCoordinatesOfArc(VArc arc, Shape shape)
         {
             if (shape is Line)
             {
-                Line line = (Line) shape;
+                Line line = (Line)shape;
                 double x1, y1, x2, y2;
 
                 MathUtil.SearchPointOfIntersection(arc.From.CoordX + PLACEWIDTH / 2,
@@ -2059,19 +1871,18 @@ namespace PNEditorEditView
         {
             if (selected is VPlace)
             {
-                selected.Column = (int) ((selected.CoordX + PLACEWIDTH / 2) / PETRINETCELLWIDTH) + 1;
-                selected.Row = (int) ((selected.CoordY + PLACEHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
+                selected.Column = (int)((selected.CoordX + PLACEWIDTH / 2) / PETRINETCELLWIDTH) + 1;
+                selected.Row = (int)((selected.CoordY + PLACEHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
                 selected.CoordX = 10 + PETRINETCELLWIDTH * (selected.Column - 1);
                 selected.CoordY = 20 + PETRINETCELLHEIGHT * (selected.Row - 1);
             }
             else
             {
-                selected.Column = (int) ((selected.CoordX + TRANSITIONWIDTH / 2) / PETRINETCELLWIDTH) + 1;
-                selected.Row = (int) ((selected.CoordY + TRANSITIONHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
+                selected.Column = (int)((selected.CoordX + TRANSITIONWIDTH / 2) / PETRINETCELLWIDTH) + 1;
+                selected.Row = (int)((selected.CoordY + TRANSITIONHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
                 selected.CoordX = 10 + PETRINETCELLWIDTH * (selected.Column - 1);
                 selected.CoordY = 10 + PETRINETCELLHEIGHT * (selected.Row - 1);
             }
-
             MoveFigure(selected);
         }
 
@@ -2133,7 +1944,7 @@ namespace PNEditorEditView
             }
         }
 
-        public void SetLabel(PetriNetNode selected)
+        private void SetLabel(PetriNetNode selected)
         {
             Label label;
             NodesToLabelsInCanvas.TryGetValue(selected, out label);
@@ -2149,7 +1960,6 @@ namespace PNEditorEditView
                 x = 15;
                 y = 25;
             }
-
             double coord = selected.CoordX + x - label.Content.ToString().Length * 4;
             if (coord < 0) coord = 0;
             Canvas.SetLeft(label, coord);
@@ -2160,12 +1970,9 @@ namespace PNEditorEditView
         {
             Command.ExecutedCommands.Clear();
             Command.CanceledCommands.Clear();
-            btnUndo.IsEnabled = false;
-            btnRedo.IsEnabled = false;
         }
 
         double borderX = spaceBetweenCells, borderY = spaceBetweenCells;
-
 
         public void VisualizePetriNet(VPetriNet net)
         {
@@ -2175,12 +1982,10 @@ namespace PNEditorEditView
             {
                 DrawFigure(node);
             }
-
             foreach (var arc in net.arcs)
             {
                 DisplayArc(arc);
             }
-
             VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
         }
 
@@ -2205,7 +2010,7 @@ namespace PNEditorEditView
                 };
             }
 
-            temp.Fill = new SolidColorBrush(Colors.White) {Opacity = 0};
+            temp.Fill = new SolidColorBrush(Colors.White) { Opacity = 0 };
             temp.StrokeThickness = 2;
             temp.Stroke = Brushes.Black;
             temp.Visibility = Visibility.Visible;
@@ -2230,7 +2035,7 @@ namespace PNEditorEditView
 
             NodesToLabelsInCanvas.Remove(figure);
 
-            var label = new Label {Content = figure.Label};
+            var label = new Label { Content = figure.Label };
 
             NodesToLabelsInCanvas.Add(figure, label);
 
@@ -2244,7 +2049,6 @@ namespace PNEditorEditView
                 Canvas.SetLeft(label, figure.CoordX + 15 - label.Content.ToString().Length * 4);
                 Canvas.SetTop(label, figure.CoordY + 25);
             }
-
             MainModelCanvas.Children.Add(label);
 
             var place = figure as VPlace;
@@ -2254,7 +2058,7 @@ namespace PNEditorEditView
             }
 
             if (_selectedFigures.Contains(figure))
-                ((Shape) GetKeyByValueForFigures(figure)).Stroke = Brushes.Coral;
+                ((Shape)GetKeyByValueForFigures(figure)).Stroke = Brushes.Coral;
         }
 
         public void ClearCanvasWithoutLoss()
@@ -2272,13 +2076,12 @@ namespace PNEditorEditView
         public void Activate()
         {
             SyncModel();
-            //TODO: sync the model
-            //throw new NotImplementedException();
+            //force simulation mode
+            btnSimulationMode_Click(null, null);
         }
 
         public void UserControlKeyUp(object sender, KeyEventArgs e)
         {
-            DisableRedoButton();
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
             {
                 PNEditorControl.isCtrlPressed = false;
@@ -2288,6 +2091,9 @@ namespace PNEditorEditView
         private void SyncModel()
         {
             var clone = MainController.Self.Net.Clone();
+            ResetColoring();
+            btnSimulate.IsEnabled = true;
+            SomeThingChanged = false;
             if (IsWindowClosing == false)
             {
                 DeleteArcs(Net.arcs.ToList());
@@ -2321,14 +2127,13 @@ namespace PNEditorEditView
                 {
                     DrawFigure(figure);
                 }
-
                 foreach (VArc arc in Net.arcs)
                 {
                     DisplayArc(arc);
                 }
+                AddToWeight();
 
                 VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
-                btnUndo.IsEnabled = true;
                 HideAllProperties();
                 if (_thisScale != 1)
                 {
@@ -2338,15 +2143,81 @@ namespace PNEditorEditView
                     MainModelCanvas.LayoutTransform = _scaleTransform;
                     MainModelCanvas.UpdateLayout();
                 }
-
                 btnGrid.IsEnabled = true;
 
-                currentFileName = null;
-                //TODO: do we need disable save or not
-                menuSave.IsEnabled = false;
             }
-
             ShowMainWindowTitleDelegate("Carassius - Petri Net Editor");
         }
+
+        #region Unfolding
+
+        private bool SomeThingChanged;
+
+        private bool Type_of_Unfolding = true;
+
+        private void Get_Unfolding(object sender, RoutedEventArgs e)
+        {
+            if (!SomeThingChanged)
+            {
+                if (Type_of_Unfolding)
+                {
+                    VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1);
+                    VisualizePetriNet(UnfoldedNet);
+                }
+                else
+                {
+                    int str;
+                    if (String.IsNullOrEmpty(Unfold_Depth.Text))
+                        str = 0;
+                    else
+                        str = int.Parse(Unfold_Depth.Text);
+                    VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str);
+                    VisualizePetriNet(UnfoldedNet);
+                }
+
+                SomeThingChanged = true;
+            }
+            else
+            {
+                MessageBox.Show("Unfolding has already been issued");
+            }
+        }
+
+        private void type_unfold_Click(object sender, RoutedEventArgs e)
+        {
+            Menu_Name.Header = "Unfolding";
+
+            Type_of_Unfolding = true;
+
+            Unfolding_Depth.Visibility = Visibility.Hidden;
+
+            Unfold_Depth.Text = "";
+        }
+
+        private void type_branch_Click(object sender, RoutedEventArgs e)
+        {
+            Menu_Name.Header = "Branching process";
+
+            Type_of_Unfolding = false;
+
+            Unfolding_Depth.Visibility = Visibility.Visible;
+        }
+
+        private void Unfold_Depth_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (!Char.IsDigit(e.Text, 0))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void Get_Back_Click(object sender, RoutedEventArgs e)
+        {
+            SomeThingChanged = false;
+            MainController.Self.Net = Unfolding.Basic;
+            SyncModel();
+        }
+
+        #endregion
     }
 }

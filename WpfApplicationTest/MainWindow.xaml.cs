@@ -19,7 +19,7 @@ namespace Carassius
             MainController.Self.HostWindow = this;
             PNEditorControl.ShowMainWindowTitleDelegate = ShowTitle;
             PNEditorSimulateView.PNEditorControl.ShowMainWindowTitleDelegate = ShowTitle;
-
+            PNUnfolding.PNEditorControl.ShowMainWindowTitleDelegate = ShowTitle;
         }
 
         private Dictionary<string, bool> MenuEnabledState = new Dictionary<string, bool>();
@@ -41,11 +41,16 @@ namespace Carassius
             activeView = view;
             EditControl.Visibility = Visibility.Hidden;
             SimulateControl.Visibility = Visibility.Hidden;
+            UnfoldControl.Visibility = Visibility.Hidden;
             if (view == EditControl)
                 EditControl.Visibility = Visibility.Visible;
-            else
+            else if(view == SimulateControl)
             {
                 SimulateControl.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UnfoldControl.Visibility = Visibility.Visible;
             }
             activeView.Activate();
             RefreshMenu();
@@ -168,6 +173,11 @@ namespace Carassius
         private void btSimulate_Click(object sender, RoutedEventArgs e)
         {
             ActiveView(SimulateControl);
+        }
+
+        private void btUnfold_Click(object sender, RoutedEventArgs e)
+        {
+            ActiveView(UnfoldControl);
         }
     }
 }

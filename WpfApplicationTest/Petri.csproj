@@ -149,6 +149,10 @@
       <Project>{81b48636-e100-4665-9464-91305aeba154}</Project>
       <Name>PNEditorSimulateView</Name>
     </ProjectReference>
+    <ProjectReference Include="..\PNUnfolding\PNUnfolding.csproj">
+      <Project>{d2670c3e-3835-4943-930a-908c0b63ae9e}</Project>
+      <Name>PNUnfolding</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">

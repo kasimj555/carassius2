@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using GraphVisualizationModule;
 
-namespace PNEditorSimulateView
+namespace PNUnfolding
 {
     /// <summary>
     /// Author: Natalia Nikitina / Alexey Mitsyuk
@@ -78,7 +78,6 @@ namespace PNEditorSimulateView
             btnSimulate.IsEnabled = true;
             btnOneStepBackSimulate.IsEnabled = false;
 
-            textBoxSimulationCurrentMarking.Clear();
             if (timer != null)
                 timer.Stop();
             while (marking.Count > 1)
@@ -109,14 +108,6 @@ namespace PNEditorSimulateView
 
             ResetColoring();
 
-            textBoxSimulationCurrentMarking.Text += "M_0 = { ";
-            for (var i = 0; i < oneStepMarking.Length - 1; i++)
-            {
-                textBoxSimulationCurrentMarking.Text += oneStepMarking[i] + " | ";
-            }
-            if(oneStepMarking.Length > 0)
-            textBoxSimulationCurrentMarking.Text += oneStepMarking[oneStepMarking.Length - 1] + " }\n";
-
             btnReset.IsEnabled = false;
         }
 
@@ -142,22 +133,6 @@ namespace PNEditorSimulateView
             var mark = new int[marking.Count][];
             marking.CopyTo(mark, 0);
             Array.Reverse(mark);
-
-            textBoxSimulationCurrentMarking.Clear();
-
-            for (var i = 0; i < mark.Length; i++)
-            {
-                if (i == mark.Length - 1 && maxMarking == marking.Count) continue;
-
-                for (var j = 0; j < mark[i].Length; j++)
-                {
-                    textBoxSimulationCurrentMarking.Text += mark[i][j] + " ";
-                }
-                textBoxSimulationCurrentMarking.Text += "\n";
-            }
-            if (maxMarking < marking.Count - 1)
-                textBoxSimulationCurrentMarking.Text += "\n";
-            textBoxSimulationCurrentMarking.ScrollToEnd();
 
             btnOneStepBackSimulate.Focusable = false;
 
@@ -237,14 +212,6 @@ namespace PNEditorSimulateView
             marking.Clear();
             maxMarking = 0;
 
-            lbllSimulationCurrentMarkingLegend.Content = "M_n = { ";
-            for (int i = 0; i < Net.places.Count - 1; i++)
-            {
-                lbllSimulationCurrentMarkingLegend.Content += Net.places[i].Id + " | ";
-            }
-            //LabelMarkingLegend.Content += Place.places[Place.places.Count - 1].Id + " }";
-            lbllSimulationCurrentMarkingLegend.Content += Net.places[Net.places.Count - 1].Id + " }";
-
             //oneStepMarking = new int[Place.places.Count];
             oneStepMarking = new int[Net.places.Count];
             //for (int i = 0; i < Place.places.Count; i++)
@@ -255,13 +222,6 @@ namespace PNEditorSimulateView
             }
             marking.Push(oneStepMarking);
             maxMarking++;
-
-            textBoxSimulationCurrentMarking.Text += "M_0 = { ";
-            for (int i = 0; i < oneStepMarking.Length - 1; i++)
-            {
-                textBoxSimulationCurrentMarking.Text += oneStepMarking[i] + " | ";
-            }
-            textBoxSimulationCurrentMarking.Text += oneStepMarking[oneStepMarking.Length - 1] + " }\n";
 
             TurnOnSelectMode();
             isItFirstStep = true;
@@ -276,7 +236,6 @@ namespace PNEditorSimulateView
             ShowSimulationProperties();
 
             pnlLeftToolPanel.Visibility = Visibility.Collapsed;
-            pnlSimulationBottom.Visibility = Visibility.Visible;
             pnlSimulationTools.Visibility = Visibility.Visible;
         }
 
@@ -320,7 +279,6 @@ namespace PNEditorSimulateView
             btnReset.IsEnabled = false;
             btnOneStepBackSimulate.IsEnabled = false;
 
-            textBoxSimulationCurrentMarking.IsEnabled = false;
             btnforcedChoice.IsEnabled = false;
             btnRandomChoice.IsEnabled = false;
             btnWaveMode.IsEnabled = false;
@@ -333,7 +291,6 @@ namespace PNEditorSimulateView
             btnStop.IsEnabled = true;
             btnReset.IsEnabled = true;
             btnOneStepBackSimulate.IsEnabled = true;
-            textBoxSimulationCurrentMarking.IsEnabled = true;
             btnforcedChoice.IsEnabled = true;
             btnRandomChoice.IsEnabled = false;
             btnWaveMode.IsEnabled = true;
@@ -664,13 +621,6 @@ namespace PNEditorSimulateView
                 marking.Push(oneStepMarking);
                 maxMarking++;
 
-                textBoxSimulationCurrentMarking.Text += "M_" + (maxMarking - 1) + " = { ";
-                for (int j = 0; j < oneStepMarking.Length - 1; j++)
-                {
-                    textBoxSimulationCurrentMarking.Text += oneStepMarking[j] + " | ";
-                }
-                textBoxSimulationCurrentMarking.Text += oneStepMarking[oneStepMarking.Length - 1] + " }\n";
-                textBoxSimulationCurrentMarking.ScrollToEnd();
                 return false;
             }
             else

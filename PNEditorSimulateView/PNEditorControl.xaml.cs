@@ -2129,6 +2129,7 @@ namespace PNEditorSimulateView
                 {
                     DisplayArc(arc);
                 }
+                AddToWeight();
 
                 VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
                 HideAllProperties();
