@@ -2159,29 +2159,38 @@ namespace PNUnfolding
 
         private void Get_Unfolding(object sender, RoutedEventArgs e)
         {
-            if (!SomeThingChanged)
+            try
             {
-                if (Type_of_Unfolding)
+                if (!SomeThingChanged)
                 {
-                    VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1);
-                    VisualizePetriNet(UnfoldedNet);
+                    if (Unfolding.Basic != null)
+                        Get_Back_Click(null, null);
+                    if (Type_of_Unfolding)
+                    {
+                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1);
+                        VisualizePetriNet(UnfoldedNet);
+                    }
+                    else
+                    {
+                        int str;
+                        if (String.IsNullOrEmpty(Depth))
+                            str = 0;
+                        else
+                            str = int.Parse(Depth);
+                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str);
+                        VisualizePetriNet(UnfoldedNet);
+                    }
+
+                    SomeThingChanged = true;
                 }
                 else
                 {
-                    int str;
-                    if (String.IsNullOrEmpty(Depth))
-                        str = 0;
-                    else
-                        str = int.Parse(Depth);
-                    VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str);
-                    VisualizePetriNet(UnfoldedNet);
+                    MessageBox.Show("Unfolding has already been issued");
                 }
-
-                SomeThingChanged = true;
             }
-            else
+            catch (ArgumentException message)
             {
-                MessageBox.Show("Unfolding has already been issued");
+                MessageBox.Show(message.Message);
             }
         }
 
@@ -2190,7 +2199,11 @@ namespace PNUnfolding
             Menu_Name.Header = "Unfolding";
 
             if (!Type_of_Unfolding)
+            {
                 SomeThingChanged = false;
+                if (Unfolding.Basic != null)
+                    Get_Back_Click(null, null);
+            }
 
             Type_of_Unfolding = true;
 
@@ -2202,7 +2215,11 @@ namespace PNUnfolding
         private void type_branch_Click(object sender, RoutedEventArgs e)
         {
             if (Type_of_Unfolding)
+            {
                 SomeThingChanged = false;
+                if (Unfolding.Basic != null)
+                    Get_Back_Click(null, null);
+            }
 
             Menu_Name.Header = "Branching process";
 
