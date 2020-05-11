@@ -24,6 +24,7 @@ namespace PNUnfolding
             {
                 netNew = VTransition.Create(75 * Unfolding.Table, 75 * Unfolding.Row) as T;
             }
+            netNew.Label = node.Id;
             PetriDictionary.Add(netNew, node);
         }
 
