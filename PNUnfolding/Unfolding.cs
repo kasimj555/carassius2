@@ -14,7 +14,7 @@ namespace PNUnfolding
 
         private static VPetriNet Result = VPetriNet.Create();
 
-        public static PetriNet Basic { get; private set; }
+        public static PetriNet Basic { get; set; }
 
         public static int Table = 1;
 
@@ -50,7 +50,7 @@ namespace PNUnfolding
             Row = 1;
         }
 
-        public static VPetriNet MilanAlgorithm(int depth)
+        public static VPetriNet MilanAlgorithm(int depth,PetriNet originalNet)
         {
             if (depth == -1)
                 IsBranchingProcess = false;
@@ -60,7 +60,7 @@ namespace PNUnfolding
                 Depth = depth;
             }
 
-            Sync();
+            Sync(originalNet);
 
             if (!IsSafe())
                 throw new ArgumentException("This net is not 1-safe");
@@ -269,7 +269,7 @@ namespace PNUnfolding
                 Result.transitions.Add(transition);
         }
 
-        private static void Sync()
+        private static void Sync(PetriNet net)
         {
             Table = 1;
             Row = 1;
@@ -278,12 +278,10 @@ namespace PNUnfolding
             petriNewPlaces.Clear();
             petriNewTransitions.Clear();
 
-            Basic = MainController.Self.Net.Clone();
-
             Clear(UNet);
             Clear(Result);
 
-            (var places, var transitions, var arcs) = Util.ModelUtil.FromOriginalModel(Basic);
+            (var places, var transitions, var arcs) = Util.ModelUtil.FromOriginalModel(net.MyClone());
             UNet.arcs.AddRange(arcs);
             UNet.places.AddRange(places);
             UNet.transitions.AddRange(transitions);

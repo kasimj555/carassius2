@@ -492,8 +492,8 @@ namespace PNUnfolding
 
         public void Deactivate()
         {
-            if (Unfolding.Basic != null)
-                MainController.Self.Net = Unfolding.Basic;
+            Get_Back_Click(null, null);
+            MainController.Self.Net = originalNet;
             //reset model
             btnReset_Click(null, null);
         }
@@ -2075,6 +2075,7 @@ namespace PNUnfolding
 
         public void Activate()
         {
+            originalNet = MainController.Self.Net.MyClone();
             SyncModel();
             //force simulation mode
             btnSimulationMode_Click(null, null);
@@ -2090,7 +2091,7 @@ namespace PNUnfolding
 
         private void SyncModel()
         {
-            var clone = MainController.Self.Net.Clone();
+            var clone = originalNet.MyClone();
             ResetColoring();
             btnSimulate.IsEnabled = true;
             SomeThingChanged = false;
@@ -2113,7 +2114,7 @@ namespace PNUnfolding
                 MainController.Self.Net.Transitions.AddRange(clone.Transitions);
                 MainController.Self.Net.Arcs.Clear();
                 MainController.Self.Net.Arcs.AddRange(clone.Arcs);
-                (var places, var transitions, var arcs) = ModelUtil.FromOriginalModel(MainController.Self.Net);
+                (var places, var transitions, var arcs) = ModelUtil.FromOriginalModel(originalNet);
                 Net.arcs.AddRange(arcs);
                 Net.places.AddRange(places);
                 Net.transitions.AddRange(transitions);
@@ -2157,17 +2158,18 @@ namespace PNUnfolding
 
         private string Depth;
 
+        private Core.Model.PetriNet originalNet;
+
         private void Get_Unfolding(object sender, RoutedEventArgs e)
         {
             try
             {
                 if (!SomeThingChanged)
                 {
-                    if (Unfolding.Basic != null)
-                        Get_Back_Click(null, null);
+                    Get_Back_Click(null, null);
                     if (Type_of_Unfolding)
                     {
-                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1);
+                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1, originalNet);
                         VisualizePetriNet(UnfoldedNet);
                     }
                     else
@@ -2177,7 +2179,7 @@ namespace PNUnfolding
                             str = 0;
                         else
                             str = int.Parse(Depth);
-                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str);
+                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(str, originalNet);
                         VisualizePetriNet(UnfoldedNet);
                     }
 
@@ -2201,8 +2203,7 @@ namespace PNUnfolding
             if (!Type_of_Unfolding)
             {
                 SomeThingChanged = false;
-                if (Unfolding.Basic != null)
-                    Get_Back_Click(null, null);
+                Get_Back_Click(null, null);
             }
 
             Type_of_Unfolding = true;
@@ -2217,8 +2218,7 @@ namespace PNUnfolding
             if (Type_of_Unfolding)
             {
                 SomeThingChanged = false;
-                if (Unfolding.Basic != null)
-                    Get_Back_Click(null, null);
+                Get_Back_Click(null, null);
             }
 
             Menu_Name.Header = "Branching process";
@@ -2247,7 +2247,6 @@ namespace PNUnfolding
         private void Get_Back_Click(object sender, RoutedEventArgs e)
         {
             SomeThingChanged = false;
-            MainController.Self.Net = Unfolding.Basic;
             SyncModel();
         }
 

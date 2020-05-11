@@ -23,5 +23,7 @@ namespace Core.Model
         /// Unique identificator of node
         /// </summary>
         public string Id { get; set; }
+
+        public abstract NodeBase MyClone();
     }
 }

@@ -673,6 +673,7 @@ namespace PNEditorEditView
 
         public void Deactivate()
         {
+            originalNet = MainController.Self.Net;
         }
 
         public void UserControlKeyDown(object sender, KeyEventArgs e)
@@ -2269,8 +2270,11 @@ namespace PNEditorEditView
             MainModelCanvas.Children.Add(_selectRect);
         }
 
+        private Core.Model.PetriNet originalNet = new Core.Model.PetriNet();
+
         public void Activate()
         {
+            MainController.Self.Net = originalNet;
             SyncModel();
             //TODO: sync the model
             //throw new NotImplementedException();
@@ -2287,7 +2291,7 @@ namespace PNEditorEditView
 
         private void SyncModel()
         {
-            var clone = MainController.Self.Net.Clone();
+            var clone = MainController.Self.Net.MyClone();
             if (IsWindowClosing == false)
             {
                 DeleteArcs(Net.arcs.ToList());
