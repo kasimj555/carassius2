@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -9,7 +10,7 @@ namespace PNUnfolding
     /// Supervisor: Alexey Mitsyuk
     /// PAIS Lab, 2014
     /// </summary>
-    public partial class PNtoTeXSettings 
+    public partial class PNtoTeXSettings
     {
         const string SELECTFILEPATH = "Select file path";
         const string PUTBEFORE = "%Put this in preamble:";
@@ -72,11 +73,11 @@ namespace PNUnfolding
                 Result.Text = PNtoTeX.RResult();
             else
                 if (CenterNetAlign.IsChecked == true)
-                    //Result.Text = PUTBEFORE + "\n\n" + PNtoTeX.Implementation() + "\n --- \n" + PNtoTeX.CResult();
-                    Result.Text = PNtoTeX.CResult();
-                else
-                    //Result.Text = PUTBEFORE + "\n\n" + PNtoTeX.Implementation() + "\n --- \n" + PNtoTeX.Result();
-                    Result.Text = PNtoTeX.Result();
+                //Result.Text = PUTBEFORE + "\n\n" + PNtoTeX.Implementation() + "\n --- \n" + PNtoTeX.CResult();
+                Result.Text = PNtoTeX.CResult();
+            else
+                //Result.Text = PUTBEFORE + "\n\n" + PNtoTeX.Implementation() + "\n --- \n" + PNtoTeX.Result();
+                Result.Text = PNtoTeX.Result();
 
         }
 

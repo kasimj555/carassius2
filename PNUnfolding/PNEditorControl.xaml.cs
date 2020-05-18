@@ -2118,12 +2118,10 @@ namespace PNUnfolding
                 Net.arcs.AddRange(arcs);
                 Net.places.AddRange(places);
                 Net.transitions.AddRange(transitions);
-                //foreach (var figure in Net.Nodes)
-                //{
-                //    foreach (var arc in Net.arcs)
-                //        if (arc.From == figure || arc.To == figure)
-                //            figure.ThisArcs.Add(arc);
-                //}
+                foreach (var figure in Net.Nodes)
+                {
+                    figure.Label = figure.Id;
+                }
                 foreach (PetriNetNode figure in Net.Nodes)
                 {
                     DrawFigure(figure);
@@ -2133,6 +2131,7 @@ namespace PNUnfolding
                     DisplayArc(arc);
                 }
                 AddToWeight();
+                UnfoldedNet = Net;
 
                 VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
                 HideAllProperties();
@@ -2158,6 +2157,20 @@ namespace PNUnfolding
 
         private string Depth;
 
+        public static VPetriNet UnfoldedNet = VPetriNet.Create();
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            if (UnfoldedNet.Nodes.Count == 0)
+            {
+                MessageBox.Show(EMPTYMODEL);
+                return;
+            }
+
+            PNtoTeXSettings PetriTeXWindow = new PNtoTeXSettings();
+            PetriTeXWindow.ShowDialog();
+        }
+
         private Core.Model.PetriNet originalNet;
 
         private void Get_Unfolding(object sender, RoutedEventArgs e)
@@ -2169,7 +2182,7 @@ namespace PNUnfolding
                     Get_Back_Click(null, null);
                     if (Type_of_Unfolding)
                     {
-                        VPetriNet UnfoldedNet = Unfolding.MilanAlgorithm(-1, originalNet);
+                        UnfoldedNet = Unfolding.MilanAlgorithm(-1, originalNet);
                         VisualizePetriNet(UnfoldedNet);
                     }
                     else

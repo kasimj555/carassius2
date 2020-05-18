@@ -108,6 +108,7 @@
                                 <TextBox x:Name="Unfold_Depth" Height="25" Width="100" HorizontalAlignment="Right" VerticalAlignment="Bottom" PreviewTextInput="Unfold_Depth_PreviewTextInput" TextChanged="Unfold_Depth_TextChanged"></TextBox>
                             </StackPanel>
                             <Button x:Name="Get_Back" Content="To the start" HorizontalAlignment="Center" Click="Get_Back_Click"></Button>
+                            <Button x:Name="Save" Content="Save" HorizontalAlignment="Center" Click="Save_Click" Width="50"/>
                         </StackPanel>
                         <!-- End: Unfolding Panel -->
                     </StackPanel>

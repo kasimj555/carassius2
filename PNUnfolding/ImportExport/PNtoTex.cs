@@ -27,6 +27,7 @@ namespace PNUnfolding
 
         public static double koefX = 50, koefY = 50;
 
+        private static VPetriNet Net;
 
         static List<VTransition> TrList = new List<VTransition>();
         static List<VPlace> PlList = new List<VPlace>();
@@ -38,10 +39,11 @@ namespace PNUnfolding
         /// </summary>      
         public static void Normalize()
         {
+            Net = PNEditorControl.UnfoldedNet;
             TrList.Clear();
             PlList.Clear();
             //foreach (Transition transition in Transition.transitions)
-            foreach (VTransition transition in PNEditorControl.Net.transitions)
+            foreach (VTransition transition in Net.transitions)
             {
                 minX = Math.Min(minX, transition.CoordX);
                 minY = Math.Min(minY, transition.CoordY);
@@ -49,7 +51,7 @@ namespace PNUnfolding
                 maxY = Math.Max(maxY, transition.CoordY);
             }
             //foreach (Place place in Place.places)
-            foreach (VPlace place in PNEditorControl.Net.places)
+            foreach (VPlace place in Net.places)
             {
                 minX = Math.Min(minX, place.CoordX);
                 minY = Math.Min(minY, place.CoordY);
@@ -58,7 +60,7 @@ namespace PNUnfolding
             }
 
             //foreach (Place p in Place.places)
-            foreach (VPlace p in PNEditorControl.Net.places)
+            foreach (VPlace p in Net.places)
             {
                 //Place place = new Place(p.CoordX - minX, p.CoordY - minY - 10);
                 var place = VPlace.Create(p.CoordX - minX, p.CoordY - minY - 10);
@@ -70,7 +72,7 @@ namespace PNUnfolding
             }
 
             //foreach (Transition t in Transition.transitions)
-            foreach (VTransition t in PNEditorControl.Net.transitions)
+            foreach (VTransition t in Net.transitions)
             {
                 //Transition transition = new Transition(t.CoordX - minX, t.CoordY - minY);
                 var transition = VTransition.Create(t.CoordX - minX, t.CoordY - minY);

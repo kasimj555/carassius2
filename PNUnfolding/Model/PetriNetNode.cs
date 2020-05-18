@@ -125,6 +125,9 @@ namespace PNUnfolding
             return tmp != "plac" || tmp != "tran" || tmp != "node" || tmp != "stat";
         }
 
+        /// <summary>
+        /// Свойство определяющее является ли данный узел активным в разветке. (Используется в разветке сетей Петри)
+        /// </summary>
         public bool IsActive { get; set; } = true;
     }
 

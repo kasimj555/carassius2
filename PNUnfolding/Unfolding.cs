@@ -8,35 +8,68 @@ using Core.Model;
 
 namespace PNUnfolding
 {
+    /// <summary>
+    /// Статичный класс с набором методов для развертки сети Петри.
+    /// </summary>
     public static class Unfolding
     {
+        /// <summary>
+        /// Начальная сеть Петри.
+        /// </summary>
         public static VPetriNet UNet = VPetriNet.Create();
 
+        /// <summary>
+        /// Развертнуая сеть Петри или же ветвящийся процесс.
+        /// </summary>
         private static VPetriNet Result = VPetriNet.Create();
 
-        public static PetriNet Basic { get; set; }
-
+        /// <summary>
+        /// Разметка столбцов узлов для построения развертки.
+        /// </summary>
         public static int Table = 1;
 
+        /// <summary>
+        /// Разметка строк узлов для построения развертки.
+        /// </summary>
         public static int Row = 1;
 
+        /// <summary>
+        /// Конкретный ход при построении развертки.
+        /// </summary>
         private static int Turn = 0;
 
+        /// <summary>
+        /// Определяет требуется ли строить ветвящийся процесс.
+        /// </summary>
         private static bool IsBranchingProcess;
 
+        /// <summary>
+        /// При ветвящемся процессе определяет глубину разветки (принимает -1 при построении finite prefix).
+        /// </summary>
         private static int Depth;
 
-        private static int CurrentTurn = 0;
-
+        /// <summary>
+        /// Условный словарь для хранения новых мест при построении развертки.
+        /// </summary>
         private static VDictionary<VPlace> petriNewPlaces = new VDictionary<VPlace>();
 
+        /// <summary>
+        /// Условный словарь для хранения новых переходов при построении развертки.
+        /// </summary>
         private static VDictionary<VTransition> petriNewTransitions = new VDictionary<VTransition>();
 
+        /// <summary>
+        /// Метод для проверки сети на 1-безопасность.
+        /// </summary>
+        /// <returns></returns>
         private static bool IsSafe()
         {
             return UNet.places.All(x => x.NumberOfTokens <= 1);
         }
 
+        /// <summary>
+        /// Метод для добавления начальных мест с токенами. При отсутсвии токенов развертка не будет соответсвенно строиться.
+        /// </summary>
         private static void AddFirstPlaces()
         {
             foreach (var place in UNet.places)
@@ -50,7 +83,13 @@ namespace PNUnfolding
             Row = 1;
         }
 
-        public static VPetriNet MilanAlgorithm(int depth,PetriNet originalNet)
+        /// <summary>
+        /// Основной метод реализующий алгоритм Милана. Принимает глубину развертки (при значении -1 будет строиться finite prefix) и изначальную сеть.
+        /// </summary>
+        /// <param name="depth"></param>
+        /// <param name="originalNet"></param>
+        /// <returns>Возвращает соотвественно развертку сети.</returns>
+        public static VPetriNet MilanAlgorithm(int depth, PetriNet originalNet)
         {
             if (depth == -1)
                 IsBranchingProcess = false;
@@ -74,12 +113,17 @@ namespace PNUnfolding
             return Result;
         }
 
+        /// <summary>
+        /// Ход при построении развертки.
+        /// </summary>
         private static void Step()
         {
+            // При построении ветвящегося процесса проверяет на глубину. При достижении определенной глубины прерывает процесс.
             if (IsBranchingProcess)
-                if (CurrentTurn >= Depth)
+                if (Turn >= Depth)
                     return;
 
+            // Если все узлы неактивны прекрящает процесс.
             if (petriNewPlaces.Keys.All(x => !x.IsActive) && petriNewTransitions.Keys.All(x => !x.IsActive))
                 return;
 
@@ -128,50 +172,6 @@ namespace PNUnfolding
                     }
                     place.IsActive = false;
                 }
-                #region method2
-                // Оставлено на всякий случай. (вызывает оверфлоу)
-
-                //foreach (var vPlace in petriNewPlaces.Keys)
-                //{
-                //    if (vPlace.IsActive)
-                //    {
-                //        foreach (var transition in UNet.transitions)
-                //        {
-                //            List<VPlace> toTransition = ToThisTransition(transition);
-                //            if (toTransition.Count == 0)
-                //                continue;
-                //            if (!toTransition.All(x => petriNewPlaces.Exist(x)))
-                //                continue;
-                //            if (!petriNewTransitions.Exist(transition))
-                //            {
-                //                petriNewTransitions.Add(transition);
-                //                foreach (var toVtr in toTransition)
-                //                {
-                //                    Result.arcs.Add(new VArc(petriNewPlaces.GetKey(toVtr), petriNewTransitions.Last()));
-                //                    ++Row;
-                //                    petriNewPlaces.GetKey(toVtr).IsActive = false;
-                //                }
-                //            }
-                //            else
-                //            {
-                //                foreach (var toVtr in toTransition)
-                //                {
-                //                    foreach (var place in petriNewPlaces.GetKeys(toVtr))
-                //                    {
-                //                        if (!ArcAlreadyExist(place, transition))
-                //                        {
-                //                            petriNewTransitions.Add(transition);
-                //                            Result.arcs.Add(new VArc(toVtr, petriNewTransitions.Last()));
-                //                            ++Row;
-                //                        }
-                //                        place.IsActive = false;
-                //                    }
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
-                #endregion
             }
             else
             {
@@ -197,21 +197,35 @@ namespace PNUnfolding
             }
             ++Turn;
             ++Table;
-            ++CurrentTurn;
             Row = 1;
             Step();
         }
 
+        /// <summary>
+        /// Проверяется является ли данный узел cut-off event.  
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         private static bool IsCutOfEvent(PetriNetNode node)
         {
             foreach (var arc in Result.arcs)
             {
                 if (arc.To == node)
-                    return IsCutOfEvent(arc.From, node);
+                    try
+                    {
+                        return IsCutOfEvent(arc.From, node);
+                    }
+                    catch (Exception) { }
             }
             return false;
         }
 
+        /// <summary>
+        /// Подметод IsCutOfEvent(PetriNetNode node) который собственно и проверяет на cut-off event.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="currentNode"></param>
+        /// <returns></returns>
         private static bool IsCutOfEvent(PetriNetNode node, PetriNetNode currentNode)
         {
             if (node.GetType() == currentNode.GetType())
@@ -230,24 +244,21 @@ namespace PNUnfolding
             foreach (var arc in Result.arcs)
             {
                 if (arc.To == node)
-                    return IsCutOfEvent(arc.From, currentNode);
+                    try
+                    {
+                        return IsCutOfEvent(arc.From, currentNode);
+                    }
+                    catch (Exception) { }
             }
-            return false;
+            throw new Exception();
         }
 
-        public static List<VPlace> ToThisTransition(VTransition transition)
-        {
-            List<VPlace> list = new List<VPlace>();
-            foreach (var arc in UNet.arcs)
-            {
-                if (arc.To == transition)
-                {
-                    list.Add(arc.From as VPlace);
-                }
-            }
-            return list;
-        }
-
+        /// <summary>
+        /// Метод определяющий содержится ли уже соединение идущее к данному переходу от места с первоночальной данному месту.
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="transition"></param>
+        /// <returns></returns>
         private static bool ArcAlreadyExist(VPlace place, VTransition transition)
         {
             foreach (var vPlace in petriNewPlaces.GetKeys(place))
@@ -261,6 +272,9 @@ namespace PNUnfolding
             return false;
         }
 
+        /// <summary>
+        /// Добавление результата в разверную сеть Петри.
+        /// </summary>
         private static void AddToResult()
         {
             foreach (var place in petriNewPlaces.Keys)
@@ -269,12 +283,15 @@ namespace PNUnfolding
                 Result.transitions.Add(transition);
         }
 
+        /// <summary>
+        /// Обнуление параметров и синхронизация заданной сети с начальной сетью.
+        /// </summary>
+        /// <param name="net"></param>
         private static void Sync(PetriNet net)
         {
             Table = 1;
             Row = 1;
             Turn = 0;
-            CurrentTurn = 0;
             petriNewPlaces.Clear();
             petriNewTransitions.Clear();
 
@@ -287,6 +304,10 @@ namespace PNUnfolding
             UNet.transitions.AddRange(transitions);
         }
 
+        /// <summary>
+        /// Чистка сети.
+        /// </summary>
+        /// <param name="net"></param>
         private static void Clear(VPetriNet net)
         {
             net.arcs.Clear();
