@@ -93,14 +93,6 @@ namespace PNUnfolding.Util
             canvas.Width = canvasWidth;
         }
 
-        public static void UpdateLineCoordinates(Line line, double x1, double x2, double y1, double y2)
-        {
-            line.X1 = x1;
-            line.X2 = x2;
-            line.Y1 = y1;
-            line.Y2 = y2;
-        }
-
         public static Line GetLineFromPath(System.Windows.Shapes.Path path)
         {
             var tempLine = new Line();

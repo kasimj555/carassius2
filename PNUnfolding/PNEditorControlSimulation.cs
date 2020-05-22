@@ -271,19 +271,6 @@ namespace PNUnfolding
 
         }
 
-        public void HideSimulationProperties()
-        {
-            btnOneStepSimulate.IsEnabled = false;
-            btnSimulate.IsEnabled = false;
-            btnStop.IsEnabled = false;
-            btnReset.IsEnabled = false;
-            btnOneStepBackSimulate.IsEnabled = false;
-
-            btnforcedChoice.IsEnabled = false;
-            btnRandomChoice.IsEnabled = false;
-            btnWaveMode.IsEnabled = false;
-        }
-
         public void ShowSimulationProperties()
         {
             btnOneStepSimulate.IsEnabled = true;

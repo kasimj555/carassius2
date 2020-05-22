@@ -85,21 +85,6 @@ namespace PNUnfolding
         }
 
         /// <summary>
-        /// Метод возвращающий первый ключ значение которого равно данному.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public T GetKey(T value)
-        {
-            foreach(var pair in PetriDictionary)
-            {
-                if (pair.Value == value)
-                    return pair.Key;
-            }
-            throw new Exception("Something wrong");
-        }
-
-        /// <summary>
         /// Метод возвращающий список ключей значения которых равны данному.
         /// </summary>
         /// <param name="value"></param>

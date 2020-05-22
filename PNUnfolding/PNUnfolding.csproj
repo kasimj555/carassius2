@@ -105,11 +105,7 @@
     <Compile Include="Model\VPetriNet.cs" />
     <Compile Include="Model\PetriNetNode.cs" />
     <Compile Include="Model\ShadowCopyList.cs" />
-    <Compile Include="ImportExport\BitmapExporter.cs" />
-    <Compile Include="ModelArrange\PetriNetColumnAndGraphForceBasedGeneralArranger.cs" />
-    <Compile Include="ModelArrange\IArranger.cs" />
     <Compile Include="Unfolding.cs" />
-    <Compile Include="Util\MathUtil.cs" />
     <Compile Include="Util\ModelUtil.cs" />
     <Compile Include="Util\VisUtil.cs" />
     <Compile Include="VDictionary.cs" />
@@ -123,15 +119,11 @@
     </Page>
     <Compile Include="Command.cs" />
     <Compile Include="FiguresMethods.cs" />
-    <Compile Include="ImportExport\GraphML.cs" />
     <Compile Include="Model\IModel.cs" />
     <Compile Include="PNEditorAbout.xaml.cs">
       <DependentUpon>PNEditorAbout.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PNEditorControlCutCopyPaste.cs" />
     <Compile Include="PNEditorControlSimulation.cs" />
-    <Compile Include="PNEditorControlUndoRedo.cs" />
-    <Compile Include="ImportExport\Pnml.cs" />
     <Compile Include="PNEditorControl.xaml.cs">
       <DependentUpon>PNEditorControl.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -146,7 +138,6 @@
     <Compile Include="PNtoTeXSettings.xaml.cs">
       <DependentUpon>PNtoTeXSettings.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Properties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

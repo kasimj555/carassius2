@@ -83,7 +83,6 @@ namespace PNUnfolding
             }
         }
 
-
         #endregion
 
         #region Output in file
@@ -130,28 +129,6 @@ namespace PNUnfolding
         }
 
         #endregion
-
-
-        public static void Transform()
-        {
-            Normalize();
-            #region Text for transitions and places
-
-            File.Delete("1.txt");
-
-            using (
-            StreamWriter writer = new StreamWriter("1.txt"))
-            {
-                writer.BaseStream.Seek(0, SeekOrigin.Begin);
-                foreach (var i in TrList)
-                    writer.WriteLine(GenerateLatexTransition(i));
-                foreach (var i in PlList)
-                    writer.WriteLine(GenerateLatexPlace(i));
-                writer.Flush();
-                writer.Close();
-            }
-            #endregion
-        }
 
         public static string Implementation()
         {

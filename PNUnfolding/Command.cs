@@ -53,8 +53,6 @@ namespace PNUnfolding
         }
     }
 
-    
-
     public class ChangeNameCommand : Command
     {
         public PetriNetNode namedFigure;
@@ -76,62 +74,6 @@ namespace PNUnfolding
         {
             figuresBeforeDrag = beforeDrag;
             figuresAfterDrag = afterDrag;
-        }
-    }
-
-    public class DeleteCommand : Command
-    {
-        public List<PetriNetNode> deletedFigures;
-        public List<VArc> deletedArcs;
-
-        public DeleteCommand(List<PetriNetNode> figures, List<VArc> arcs)
-        {
-            deletedFigures = figures;
-            deletedArcs = arcs;
-        }
-    }
-
-    public class CutCommand : Command
-    {
-        public List<PetriNetNode> cuttedFigures;
-        public List<PetriNetNode> oldFigures;
-        public List<VArc> explicitlyCuttedArcs;
-        public List<VArc> implicitlyCuttedArcs;
-        public double minX, minY;
-
-        public CutCommand(List<PetriNetNode> figures, List<PetriNetNode> old, List<VArc> exp, List<VArc> impl)
-        {
-            cuttedFigures = figures;
-            explicitlyCuttedArcs = exp;
-            implicitlyCuttedArcs = impl;
-            oldFigures = old;
-        }
-    }
-
-    public class PasteCommand : Command
-    {
-        public List<PetriNetNode> pastedfigures;
-        public List<VArc> pastedArcs;
-
-        public PasteCommand(List<PetriNetNode> figures, List<VArc> arcs)
-        {
-            pastedfigures = figures;
-            pastedArcs = arcs;
-        }
-    }
-
-    public class ChangeWeightCommand : Command
-    {
-        public VArc arc;
-        public string oldWeight, newWeight;
-        public Label oldWeightLabel, newWeightLabel;
-        public ChangeWeightCommand(VArc thisArc, string oldW, string newW, Label oldLabel, Label newLabel)
-        {
-            arc = thisArc;
-            oldWeight = oldW;
-            newWeight = newW;
-            oldWeightLabel = oldLabel;
-            newWeightLabel = newLabel;
         }
     }
 

@@ -11,7 +11,6 @@ using System.Xml;
 using System.Diagnostics;
 using System.Linq;
 using Core;
-using PNUnfolding.ModelArrange;
 using PNUnfolding.Util;
 using Path = System.Windows.Shapes.Path;
 
@@ -26,10 +25,6 @@ namespace PNUnfolding
     {
         #region const
 
-        private const string ADDARC = "Add new arc";
-        private const string ADDNODE = "Add new node";
-        private const string ADDEDGE = "Add new edge";
-
         private const string ARCSBETWEENTRANSITIONS = "Arcs between transitions are not allowed!";
         private const string ARCSBETWEENPLACES = "Arcs between places are not allowed!";
         private const string ARCALREADYEXISTS = "An arc is already exists";
@@ -39,15 +34,7 @@ namespace PNUnfolding
         private const string INCORRECTDATA02 = "The number of tokens should be bigger than or equal to 0.\n Please, try again!";
         private const string INCORRECTDATA03 = "An arc's weight should be bigger than 0.\n Please, try again!";
 
-        private const string CLEARCANVAS00 = "Are you sure, that you want to clear the model?";
-        private const string CLEARCANVAS01 = "Clear ...";
-
         private const string EMPTYMODEL = "Current model is empty!";
-
-        private const string ALWAYSTIENODES00 = "Do not tie nodes to the grid";
-        private const string ALWAYSTIENODES01 = "Always tie nodes to the grid";
-
-        private const string NODECANTBEINITIALANDFINAL = "Node can't be initial and final at the same time";
 
         private const int PETRINETCELLHEIGHT = 70;
         private const int PETRINETCELLWIDTH = 60;
@@ -61,9 +48,6 @@ namespace PNUnfolding
         // main Petri-net
         public static VPetriNet Net = VPetriNet.Create();
 
-        //todo Сейчас один выравниватель. В будущем предполагается заменить на набор разных.
-        private readonly IArranger _arranger;
-
         public PNEditorControl()
         {
             InitializeComponent();
@@ -75,7 +59,6 @@ namespace PNUnfolding
 
             Stopwatch.Start();
 
-            _arranger = new PetriNetColumnAndGraphForceBasedGeneralArranger();
         }
 
         #region Grid-Drawing
@@ -136,30 +119,6 @@ namespace PNUnfolding
 
         #endregion Grid-Drawing
 
-        #region UIMethods
-
-
-
-
-
-
-
-        private void MakeNamePanelVisible()
-        {
-            lblName.Visibility = Visibility.Visible;
-            tbName.Visibility = Visibility.Visible;
-            btnOkName.Visibility = Visibility.Visible;
-        }
-
-        private void MakeNamePanelCollapsed()
-        {
-            lblName.Visibility = Visibility.Collapsed;
-            tbName.Visibility = Visibility.Collapsed;
-            btnOkName.Visibility = Visibility.Collapsed;
-        }
-
-        #endregion UIMethods
-
         #region ClickHandlers
 
         private void btnSelect_Click(object sender, RoutedEventArgs e)
@@ -184,20 +143,6 @@ namespace PNUnfolding
                     rectangle.Visibility = Visibility.Visible;
             }
             TurnOnSelectMode();
-        }
-
-        private void btnTieToMeshAll_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (PetriNetNode figure in Net.Nodes)
-            {
-                if (!_selectedFigures.Contains(figure))
-                {
-                    _selectedFigures.Add(figure);
-                }
-            }
-            btnTieToMesh_Click(sender, e);
-            UnselectFigures();//(selectedFigures, selectedArcs); //(PetriNetNode.figures, Arc.arcs);
-            ReassignSelectedProperties();
         }
 
         private void btnShowHideLabels_Click(object sender, RoutedEventArgs e)
@@ -354,19 +299,6 @@ namespace PNUnfolding
             tbTokenNumber.Text = _numberOfTokensChanged.ToString();
         }
 
-        private void btnTieToMesh_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            _figuresBeforeDrag = CopyListOfFigures(Net.Nodes);
-            foreach (PetriNetNode selected in _selectedFigures)
-                SetCoordinatesByMesh(selected);
-            _figuresAfterDrag = CopyListOfFigures(Net.Nodes);
-            DragCommand newCommand = new DragCommand(_figuresBeforeDrag, _figuresAfterDrag);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
-            TurnOnSelectMode();
-        }
-
         private void btnWeightOK_Click(object sender, RoutedEventArgs e)
         {
             btnSelect.IsEnabled = true;
@@ -384,30 +316,6 @@ namespace PNUnfolding
                     tbArcWeight.Focus();
                 }
             }
-        }
-
-        private void btnClearWorkingField_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-
-            if (MessageBox.Show(CLEARCANVAS00, CLEARCANVAS01,
-                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                List<PetriNetNode> figures = Net.Nodes.ToList();
-                List<VArc> arcs = Net.arcs.ToList();
-                MakeDeleteCommand(figures, arcs);
-                DeleteFigures(figures, arcs);
-                HideAllProperties();
-            }
-            TurnOnSelectMode();
-        }
-
-        private void btnSaveToPng_Click(object sender, RoutedEventArgs e)
-        {
-            btnSelect.IsEnabled = true;
-            ImportExport.BitmapExporter.SaveModelAsAPicture(MainModelCanvas, Net.Nodes);
-
-            TurnOnSelectMode();
         }
 
         private void btnTokenNumberChangeFieldPlus_Click(object sender, RoutedEventArgs e)
@@ -430,7 +338,6 @@ namespace PNUnfolding
             tbPriority.Text = _priorityChanged.ToString();
         }
 
-
         private void btnOkName_Click(object sender, RoutedEventArgs e)
         {
 
@@ -445,43 +352,6 @@ namespace PNUnfolding
         }
 
         #endregion ClickHandlers
-
-        #region PetriNetImportExport
-
-        //public void GetPetriNet(PetriNet net)
-        //{
-        //    Net = PetriNet.Create(net.places, net.transitions, net.arcs);
-        //    //foreach (Place place in net.places)
-        //    //    SetOfFigures.Figures.Add(place);
-        //    //foreach (Transition transition in net.transitions)
-        //    //    SetOfFigures.Figures.Add(transition);
-        //    //todo А обновится ли вообще картинка?
-        //}
-
-        //public PetriNet GivePetriNet()
-        //{
-        //    return Net.Copy();
-        //}
-
-        public VPetriNet GetCurrentModel()
-        {
-            return Net;
-        }
-
-        public void SetCurrentModel(VPetriNet model)
-        {
-            Net = model;
-            foreach (PetriNetNode figure in Net.Nodes)
-            {
-                DrawFigure(figure);
-            }
-            foreach (VArc arc in Net.arcs)
-            {
-                DisplayArc(arc);
-            }
-        }
-
-        #endregion PetriNetImportExport
 
         #region Events
 
@@ -708,7 +578,6 @@ namespace PNUnfolding
                         if (isCtrlPressed == false)
                         {
                             UnselectFigures();//(selectedFigures, selectedArcs);
-                            HideAllProperties();
                         }
                     }
                     break;
@@ -773,7 +642,6 @@ namespace PNUnfolding
                                     }
                                     tbArcWeight.Focus();
                                 }
-                                ReassignSelectedProperties();
                             }
                             else
                             {
@@ -809,7 +677,6 @@ namespace PNUnfolding
                                     }
                                     ColorArrow(arc);
                                 }
-                                ReassignSelectedProperties();
                             }
                             _selecting = false;
                         }
@@ -1017,7 +884,6 @@ namespace PNUnfolding
             {
                 _selectedArcs.Add(_selectedArc);
                 ColorArrow(_selectedArc);
-                ReassignSelectedProperties();
             }
             e.Handled = true;
         }
@@ -1063,11 +929,6 @@ namespace PNUnfolding
             {
                 btnOkName_Click(sender, e);
             }
-        }
-
-        private void MainTabControlWithModelCanvases_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //todo: this does not matter, no tabs in future
         }
 
         private void tbName_TextChanged(object sender, TextChangedEventArgs e)
@@ -1126,11 +987,6 @@ namespace PNUnfolding
 
         private static readonly Stopwatch Stopwatch = new Stopwatch();
 
-        public void StopStopWatch()
-        {
-            Stopwatch.Stop();
-        }
-
         #region vars
 
         public delegate void ShowNameDelegate(string name);
@@ -1166,8 +1022,6 @@ namespace PNUnfolding
         private readonly List<PetriNetNode> _selectedFigures = new List<PetriNetNode>();
         private PetriNetNode _mainFigure;
 
-        private readonly Dictionary<VPlace, Ellipse> _finalStates = new Dictionary<VPlace, Ellipse>();
-
         private VArc _selectedArc;
         private readonly List<VArc> _selectedArcs = new List<VArc>();
         private Dictionary<Shape, VArc> _tempDictionary;
@@ -1186,23 +1040,12 @@ namespace PNUnfolding
 
         private enum ModeTieToMesh { Tie, NotTie }
         private ModeTieToMesh _modeTieToMesh = ModeTieToMesh.NotTie;
-        private bool _tie;
-
-
-        private readonly Rectangle _outline = new Rectangle();
 
         private List<PetriNetNode> _figuresBeforeDrag = new List<PetriNetNode>();
         private List<PetriNetNode> _figuresAfterDrag = new List<PetriNetNode>();
 
-        private readonly Dictionary<Grid, Polyline> _syncRelationsDictionary = new Dictionary<Grid, Polyline>();
-
-        private int _currentRow;
-
         public enum SyncModeEnum { Sync, Async };
         public static SyncModeEnum SyncMode;
-
-
-        private bool _firstFocusOnTab = true;
 
         #endregion
 
@@ -1244,49 +1087,6 @@ namespace PNUnfolding
             }
 
             Net.DeleteArcs(arcs);
-        }
-
-        private void DeleteFigures(List<PetriNetNode> selectedF, List<VArc> selectedA)
-        {
-            _leftMouseButtonMode = LeftMouseButtonMode.Delete;
-
-            if (selectedF.Count != 0)
-            {
-                foreach (PetriNetNode figure in selectedF)
-                {
-                    RemoveNode(figure);
-                }
-            }
-
-            DeleteArcs(selectedA);
-
-            ReassignSelectedProperties();
-
-            _selectedFigure = null;
-            _selectedArc = null;
-            TurnOnSelectMode();
-        }
-
-        private void MakeDeleteCommand(List<PetriNetNode> selectedF, List<VArc> selectedA)
-        {
-            List<PetriNetNode> deletedFigures = new List<PetriNetNode>();
-            List<VArc> deletedArcs = new List<VArc>();
-            foreach (PetriNetNode figure in selectedF)
-            {
-                deletedFigures.Add(figure);
-                foreach (VArc arc in figure.ThisArcs)
-                    if (!deletedArcs.Contains(arc))
-                        deletedArcs.Add(arc);
-            }
-            foreach (VArc arc in selectedA)
-            {
-                if (!deletedArcs.Contains(arc))
-                    deletedArcs.Add(arc);
-            }
-
-            DeleteCommand newCommand = new DeleteCommand(deletedFigures, deletedArcs);
-            Command.ExecutedCommands.Push(newCommand);
-            Command.CanceledCommands.Clear();
         }
 
         private void AddTokens(VPlace changedPlace)
@@ -1466,7 +1266,6 @@ namespace PNUnfolding
             _selectedFigures.Add(figure);
             var ellipseForColor = GetKeyByValueForFigures(figure) as Shape;
             if (ellipseForColor != null) ellipseForColor.Stroke = Brushes.Chocolate;
-            ReassignSelectedProperties();
         }
 
         private List<PetriNetNode> CopyListOfFigures(List<PetriNetNode> toBeCopied)
@@ -1501,15 +1300,6 @@ namespace PNUnfolding
             }
             _selectedFigures.Clear();
             _selectedArcs.Clear();
-        }
-
-        private void ChangeCoordinatedOfWeightLabel(VArc arc)
-        {
-            if (arc.WeightLabel != null)
-            {
-                Canvas.SetLeft(arc.WeightLabel, (arc.From.CoordX + arc.To.CoordX) / 2);
-                Canvas.SetTop(arc.WeightLabel, (arc.From.CoordY + arc.To.CoordY) / 2 - 5);
-            }
         }
 
         private void SelectOrUnselectFigure()
@@ -1785,47 +1575,6 @@ namespace PNUnfolding
 
         #endregion
 
-        private void SetNewCoordinatesOfArc(VArc arc, Shape shape)
-        {
-            if (shape is Line)
-            {
-                Line line = (Line)shape;
-                double x1, y1, x2, y2;
-
-                MathUtil.SearchPointOfIntersection(arc.From.CoordX + PLACEWIDTH / 2,
-                    arc.From.CoordY + PLACEHEIGHT / 2,
-                    arc.To.CoordX + PLACEWIDTH / 2,
-                    arc.To.CoordY + PLACEHEIGHT / 2, out x1, out y1);
-                MathUtil.SearchPointOfIntersection(arc.To.CoordX + PLACEWIDTH / 2,
-                    arc.To.CoordY + PLACEHEIGHT / 2,
-                    arc.From.CoordX + PLACEWIDTH / 2,
-                    arc.From.CoordY + PLACEHEIGHT / 2, out x2, out y2);
-
-                line.X1 = x1;
-                line.X2 = x2;
-                line.Y1 = y1;
-                line.Y2 = y2;
-            }
-            else
-            {
-                var path = shape as Path;
-
-                var geom = path.Data as PathGeometry;
-                var segment = geom.Figures[0].Segments[0] as BezierSegment;
-
-                var x = arc.From.CoordX;
-                var y = arc.From.CoordY;
-
-                geom.Figures[0].StartPoint = new Point(x + PLACEWIDTH / 2, y);
-
-                Debug.Assert(segment != null, "segment != null");
-
-                segment.Point1 = new Point(x - PLACEWIDTH / 3, y - PLACEHEIGHT - PLACEHEIGHT / 3);
-                segment.Point2 = new Point(x + PLACEWIDTH + PLACEWIDTH / 3, y - PLACEHEIGHT - PLACEHEIGHT / 3);
-                segment.Point3 = new Point(x + PLACEWIDTH / 2, y);
-            }
-        }
-
         bool hideLabels;
 
         public static bool IsWindowClosing = false;
@@ -1837,15 +1586,6 @@ namespace PNUnfolding
 
         public static bool isCtrlPressed;
         public static bool isSomethingChanged = false;
-
-        private Grid GetGridByLine(Polyline line)
-        {
-            return (from ex in _syncRelationsDictionary where ex.Value.Equals(line) select ex.Key).FirstOrDefault();
-        }
-
-        bool alreadyDeleted;
-
-        const int spaceBetweenCells = 50;
 
         private void AddWeightLabel(VArc arc, string content)
         {
@@ -1865,57 +1605,6 @@ namespace PNUnfolding
             btnSelect.Focus();
             btnSelect.IsEnabled = false;
             _leftMouseButtonMode = LeftMouseButtonMode.Select;
-        }
-
-        private void SetCoordinatesByMesh(PetriNetNode selected)
-        {
-            if (selected is VPlace)
-            {
-                selected.Column = (int)((selected.CoordX + PLACEWIDTH / 2) / PETRINETCELLWIDTH) + 1;
-                selected.Row = (int)((selected.CoordY + PLACEHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
-                selected.CoordX = 10 + PETRINETCELLWIDTH * (selected.Column - 1);
-                selected.CoordY = 20 + PETRINETCELLHEIGHT * (selected.Row - 1);
-            }
-            else
-            {
-                selected.Column = (int)((selected.CoordX + TRANSITIONWIDTH / 2) / PETRINETCELLWIDTH) + 1;
-                selected.Row = (int)((selected.CoordY + TRANSITIONHEIGHT / 2) / PETRINETCELLHEIGHT) + 1;
-                selected.CoordX = 10 + PETRINETCELLWIDTH * (selected.Column - 1);
-                selected.CoordY = 10 + PETRINETCELLHEIGHT * (selected.Row - 1);
-            }
-            MoveFigure(selected);
-        }
-
-        //todo разделить работу с моделью и канвасом
-        public void MoveFigure(PetriNetNode figure)
-        {
-            Canvas.SetLeft(GetKeyByValueForFigures(figure) as Shape, figure.CoordX);
-            Canvas.SetTop(GetKeyByValueForFigures(figure) as Shape, figure.CoordY);
-
-            foreach (var arc in figure.ThisArcs)
-            {
-                var line = GetKeyByValueForArcs(arc, DictionaryForArcs);
-
-
-                if (line is Line)
-                    VisUtil.SetCoordinatesOfLine(line as Line, arc);
-                else
-                    SetNewCoordinatesOfArc(arc, line);
-
-                RedrawArrowHeads(arc);
-                ColorArrow(arc);
-                ChangeCoordinatedOfWeightLabel(arc);
-            }
-
-            SetLabel(figure);
-
-            VPlace place = figure as VPlace;
-            if (place == null) return;
-            //todo вот такую хрень приходится делать, так как токены (каринки токенов) 
-            // не вложены в эллипс позиции, они просто удаляются и добавляются. Причем, 
-            // и в картинку, и в модель данных. Ужас
-            RemoveTokens(place);
-            AddTokens(place);
         }
 
         private void ColorArrow(VArc arc)
@@ -1965,14 +1654,6 @@ namespace PNUnfolding
             Canvas.SetLeft(label, coord);
             Canvas.SetTop(label, selected.CoordY + y);
         }
-
-        private void ClearCommandStacks()
-        {
-            Command.ExecutedCommands.Clear();
-            Command.CanceledCommands.Clear();
-        }
-
-        double borderX = spaceBetweenCells, borderY = spaceBetweenCells;
 
         public void VisualizePetriNet(VPetriNet net)
         {
@@ -2134,7 +1815,6 @@ namespace PNUnfolding
                 UnfoldedNet = Net;
 
                 VisUtil.ResizeCanvas(Net.Nodes, MainControl, MainModelCanvas);
-                HideAllProperties();
                 if (_thisScale != 1)
                 {
                     _scaleTransform.ScaleX = 1;
@@ -2161,14 +1841,21 @@ namespace PNUnfolding
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            if (UnfoldedNet.Nodes.Count == 0)
+            if (Net.Nodes.Count == 0)
             {
                 MessageBox.Show(EMPTYMODEL);
                 return;
             }
 
-            PNtoTeXSettings PetriTeXWindow = new PNtoTeXSettings();
-            PetriTeXWindow.ShowDialog();
+            try
+            {
+                PNtoTeXSettings PetriTeXWindow = new PNtoTeXSettings();
+                PetriTeXWindow.ShowDialog();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Can not save the file");
+            }
         }
 
         private Core.Model.PetriNet originalNet;
