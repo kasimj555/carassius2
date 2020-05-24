@@ -101,10 +101,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddArcCommand.cs" />
+    <Compile Include="AddFigureCommand.cs" />
+    <Compile Include="AddTokensCommand.cs" />
+    <Compile Include="ChangeNameCommand.cs" />
+    <Compile Include="ChangePriorityCommand.cs" />
+    <Compile Include="DragCommand.cs" />
     <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\VArc.cs" />
     <Compile Include="Model\VPetriNet.cs" />
     <Compile Include="Model\PetriNetNode.cs" />
     <Compile Include="Model\ShadowCopyList.cs" />
+    <Compile Include="Model\VPlace.cs" />
+    <Compile Include="Model\VTransition.cs" />
     <Compile Include="Unfolding.cs" />
     <Compile Include="Util\ModelUtil.cs" />
     <Compile Include="Util\VisUtil.cs" />
